@@ -11,7 +11,6 @@ app.use(express.static("public"));
 io.on("connection", (socket) => {
   socket.on("join", (username) => {
     socket.username = username;
-
     io.emit("chat message", {
       username: "Sistema",
       message: username + " entrou no chat"
