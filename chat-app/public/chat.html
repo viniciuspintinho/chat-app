@@ -6,28 +6,30 @@
     <title>Chat dos Fofo 💕</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme"> <header>
+<body class="dark-theme">
+    <header>
         <span>CHAT DOS FOFO 💕</span>
-        <button id="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        <button id="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
     </header>
     
     <div id="side-panel">
         <div class="panel-section">
-            <button class="btn-edit" onclick="toggleEdit()">⚙️ Meu Perfil</button>
+            <button class="btn-edit" onclick="toggleEdit()">⚙️ Editar Perfil</button>
             <div id="edit-fields" style="display:none;">
                 <input id="new-name" placeholder="Novo nome...">
                 <input id="new-photo" placeholder="Link da foto...">
                 <button class="btn-save" onclick="updateProfile()">Salvar</button>
             </div>
         </div>
-        
         <div class="panel-section online-box">
             <h4>Online (<span id="user-count">0</span>)</h4>
             <ul id="user-list"></ul>
         </div>
     </div>
 
-    <div id="chat"></div>
+    <div id="chat-container">
+        <div id="chat"></div>
+    </div>
 
     <div id="reply-container" style="display:none;">
         <span id="reply-text"></span>
