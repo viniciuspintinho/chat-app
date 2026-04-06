@@ -1,18 +1,36 @@
-<body class="dark-theme">
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Moderno</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
     <div id="chat-app">
         <aside id="side-panel">
             <header><span>CHAT DOS FOFO 💕</span></header>
-            <div id="user-list"></div>
+            <div id="user-list">
+                </div>
         </aside>
+
         <main id="main-content">
-            <div id="chat-container"><div id="chat"></div></div>
+            <div id="chat-container">
+                <div id="chat"></div>
+            </div>
+            
             <div id="typing-indicator"></div>
+
             <div id="inputArea">
-                <input id="message" placeholder="Digite..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="document.getElementById('file-input').click()" style="background:none; border:none; font-size:20px; cursor:pointer;">📷</button>
+                <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
+                <input id="message" placeholder="Escreva algo..." onkeypress="if(event.key==='Enter') sendMessage()">
                 <button class="btn-send-main" onclick="sendMessage()">Enviar</button>
             </div>
         </main>
     </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>
+</html>
