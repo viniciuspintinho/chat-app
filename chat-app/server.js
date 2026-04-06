@@ -4,8 +4,7 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-// Aumentar o limite para poder enviar fotos pesadas
-const io = socketIo(server, { maxHttpBufferSize: 1e7 }); 
+const io = socketIo(server, { maxHttpBufferSize: 1e7 }); // Para aceitar fotos
 
 app.use(express.static('public'));
 
@@ -26,11 +25,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message', (data) => {
-        const userData = users[socket.id];
-        if (userData) {
+        const user = users[socket.id];
+        if (user) {
             io.emit('message', { 
-                user: userData.name, 
-                photo: userData.photo, 
+                user: user.name, 
+                photo: user.photo, 
                 type: data.type, 
                 content: data.content 
             });
@@ -44,4 +43,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0');
+server.listen(PORT, '0.0.0.0', () => console.log(`Rodando na porta ${PORT}`));

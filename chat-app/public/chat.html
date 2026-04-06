@@ -2,23 +2,24 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat dos Fofo 💕</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>CHAT DOS FOFO 💕</header>
     
-    <div id="sidebar-container">
-        <div id="profile-edit">
-            <button onclick="toggleEdit()">⚙️ Editar Perfil</button>
+    <div id="side-panel">
+        <div class="panel-section">
+            <button class="btn-edit" onclick="toggleEdit()">⚙️ Perfil</button>
             <div id="edit-fields" style="display:none;">
                 <input id="new-name" placeholder="Novo nome...">
-                <input id="new-photo" placeholder="Novo link foto...">
-                <button onclick="updateProfile()">Salvar</button>
+                <input id="new-photo" placeholder="Link da foto...">
+                <button class="btn-save" onclick="updateProfile()">Salvar</button>
             </div>
         </div>
         
-        <div id="online-box">
+        <div class="panel-section online-box">
             <h4>Online (<span id="user-count">0</span>)</h4>
             <ul id="user-list"></ul>
         </div>
@@ -27,11 +28,11 @@
     <div id="chat"></div>
 
     <div id="inputArea">
-        <button onclick="document.getElementById('file-input').click()">📷</button>
+        <button class="btn-icon" onclick="document.getElementById('file-input').click()">📷</button>
         <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
         
-        <input id="message" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">Enviar</button>
+        <input id="message" placeholder="Escreva uma mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button class="btn-send" onclick="sendMessage()">Enviar</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

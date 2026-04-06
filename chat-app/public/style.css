@@ -1,53 +1,125 @@
-/* ... Mantenha o que já tinha e adicione/ajuste isto: ... */
+/* Geral */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #0f0f0f;
+    color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
-#sidebar-container {
+header {
+    background: #1a1a1a;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Painel Lateral Flutuante */
+#side-panel {
     position: fixed;
     top: 70px;
-    right: 20px;
-    width: 200px;
+    right: 15px;
+    width: 180px;
     z-index: 100;
 }
 
-#profile-edit {
-    background: #222;
+.panel-section {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
     padding: 10px;
-    border-radius: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ff00ff; /* Cor diferente para destacar */
 }
 
-#edit-fields input {
-    width: 90%;
-    margin: 5px 0;
-    font-size: 12px;
-    padding: 5px;
-    background: #333;
-    color: white;
-    border: 1px solid #444;
+.online-box h4 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #00ffcc;
 }
 
-#online-box {
-    background: rgba(34, 34, 34, 0.9);
-    border: 1px solid #00ffcc;
-    border-radius: 10px;
-    padding: 10px;
-    max-height: 250px;
+#user-list { list-style: none; padding: 0; margin: 0; }
+.online-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+/* Chat (Estilo Antigo) */
+#chat {
+    flex: 1;
     overflow-y: auto;
-}
-
-/* Estilo para imagem enviada no chat */
-.chat-img {
-    max-width: 200px;
-    border-radius: 10px;
-    margin-top: 5px;
-    display: block;
+    padding: 20px;
+    padding-bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .msg {
-    background: #333;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    width: fit-content;
-    max-width: 80%;
+    background: #262626;
+    padding: 12px;
+    border-radius: 15px;
+    border-bottom-left-radius: 2px;
+    max-width: 75%;
+    align-self: flex-start;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
+
+.msg-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #00ffcc;
+}
+
+.msg-avatar, .avatar-mini {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 5px;
+}
+
+/* Input Area */
+#inputArea {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #1a1a1a;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    border-top: 1px solid #333;
+}
+
+#message {
+    flex: 1;
+    padding: 12px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 25px;
+    color: white;
+    outline: none;
+}
+
+/* Botões */
+button { cursor: pointer; transition: 0.2s; }
+.btn-send { background: #00ffcc; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; }
+.btn-send:hover { background: #00cca3; }
+.btn-icon { background: none; border: none; font-size: 20px; }
+.btn-edit { background: #333; color: white; border: none; border-radius: 5px; width: 100%; padding: 5px; }
