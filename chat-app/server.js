@@ -1,22 +1,19 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, { maxHttpBufferSize: 1e7 }); 
 
 app.use(express.static('public'));
-
 let users = {}; 
 
 io.on('connection', (socket) => {
-    // Quando alguém entra
     socket.on('join', (data) => {
         users[socket.id] = { 
             name: data.name || 'Anônimo', 
-            photo: data.photo || '', 
-            color: data.color || '#00f2ff' 
+            photo: data.photo || 'https://ui-avatars.com/api/?name=' + data.name, 
+            color: data.color || '#ff4bb4' 
         };
         io.emit('message', { 
             type: 'system', 
@@ -26,20 +23,20 @@ io.on('connection', (socket) => {
         io.emit('updateUserList', Object.values(users));
     });
 
-    // Indicador de Digitação
-    socket.on('typing', (isTyping) => {
-        const user = users[socket.id];
-        if (user) {
-            socket.broadcast.emit('typing', { name: user.name, isTyping });
+    // NOVO: Evento para mostrar quem está digitando
+    socket.on('typing', (data) => {
+        socket.broadcast.emit('typing', data);
+    });
+
+    socket.on('reaction', (data) => { io.emit('reaction', data); });
+
+    socket.on('updateProfile', (data) => {
+        if (users[socket.id]) {
+            users[socket.id] = { ...users[socket.id], ...data };
+            io.emit('updateUserList', Object.values(users));
         }
     });
 
-    // Reações
-    socket.on('reaction', (data) => {
-        io.emit('reaction', data); 
-    });
-
-    // Envio de Mensagem (com suporte a Autodestruição/Burn)
     socket.on('message', (data) => {
         const user = users[socket.id];
         if (user) {
@@ -49,18 +46,8 @@ io.on('connection', (socket) => {
                 color: user.color,
                 type: data.type, 
                 content: data.content,
-                reply: data.reply,
-                burn: data.burn // Tempo em segundos para sumir
+                reply: data.reply 
             });
-        }
-    });
-
-    socket.on('updateProfile', (data) => {
-        if (users[socket.id]) {
-            users[socket.id].name = data.name;
-            users[socket.id].photo = data.photo;
-            users[socket.id].color = data.color;
-            io.emit('updateUserList', Object.values(users));
         }
     });
 
@@ -72,6 +59,5 @@ io.on('connection', (socket) => {
         }
     });
 });
-
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => console.log(`Servidor na porta ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`Rodando na porta ${PORT}`));

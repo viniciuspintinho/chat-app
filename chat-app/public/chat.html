@@ -1,54 +1,18 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat dos Fofo | Premium</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<body class="dark-theme">
     <div id="chat-app">
         <aside id="side-panel">
-            <header>
-                <span>FOFO 💕</span>
-                <button onclick="toggleTheme()" class="btn-theme">🌓</button>
-            </header>
-
-            <div class="panel-section">
-                <button class="btn-edit" onclick="toggleEdit()">⚙️ Meu Perfil</button>
-                <div id="edit-fields" style="display:none; margin-top:15px;">
-                    <input id="new-name" placeholder="Seu nome...">
-                    <input type="color" id="new-color" value="#ff4bb4">
-                    <button onclick="updateProfile()" class="btn-save">Salvar</button>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h4>Ativos agora (<span id="user-count">0</span>)</h4>
-                <ul id="user-list"></ul>
-            </div>
+            <header><span>CHAT DOS FOFO 💕</span></header>
+            <div id="user-list"></div>
         </aside>
-
         <main id="main-content">
-            <div id="chat-container">
-                <div id="chat"></div>
-            </div>
-
-            <div id="reply-container" style="display:none;">
-                <span id="reply-text"></span>
-                <button onclick="cancelReply()">✕</button>
-            </div>
-
+            <div id="chat-container"><div id="chat"></div></div>
+            <div id="typing-indicator"></div>
             <div id="inputArea">
-                <button class="btn-camera" onclick="document.getElementById('file-input').click()">📷</button>
-                <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
-                <input id="message" placeholder="Escreva sua mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <input id="message" placeholder="Digite..." onkeypress="if(event.key==='Enter') sendMessage()">
                 <button class="btn-send-main" onclick="sendMessage()">Enviar</button>
             </div>
         </main>
     </div>
-
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>
-</html>
