@@ -1,65 +1,46 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #fff;
-}
+/* ... Mantenha o que já tinha e adicione/ajuste isto: ... */
 
-header {
-    background: #222;
-    padding: 15px;
-    text-align: center;
-}
-
-/* Painel Flutuante Superior Direito */
-#online-box {
+#sidebar-container {
     position: fixed;
     top: 70px;
     right: 20px;
-    width: 180px;
+    width: 200px;
+    z-index: 100;
+}
+
+#profile-edit {
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ff00ff; /* Cor diferente para destacar */
+}
+
+#edit-fields input {
+    width: 90%;
+    margin: 5px 0;
+    font-size: 12px;
+    padding: 5px;
+    background: #333;
+    color: white;
+    border: 1px solid #444;
+}
+
+#online-box {
     background: rgba(34, 34, 34, 0.9);
     border: 1px solid #00ffcc;
     border-radius: 10px;
     padding: 10px;
-    max-height: 300px;
+    max-height: 250px;
     overflow-y: auto;
-    z-index: 100;
 }
 
-#online-box h4 {
-    margin: 0 0 10px 0;
-    font-size: 14px;
-    color: #00ffcc;
-    text-align: center;
-}
-
-#user-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.online-user {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-
-.avatar-mini {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-/* Chat e Mensagens */
-#chat {
-    height: 75vh;
-    overflow-y: auto;
-    padding: 20px;
-    margin-top: 10px;
+/* Estilo para imagem enviada no chat */
+.chat-img {
+    max-width: 200px;
+    border-radius: 10px;
+    margin-top: 5px;
+    display: block;
 }
 
 .msg {
@@ -68,27 +49,5 @@ header {
     margin-bottom: 10px;
     border-radius: 10px;
     width: fit-content;
-    max-width: 70%;
+    max-width: 80%;
 }
-
-.msg-header {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: #00ffcc;
-    margin-bottom: 5px;
-}
-
-#inputArea {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: #222;
-    padding: 15px;
-    display: flex;
-    gap: 10px;
-}
-
-#message { flex: 1; padding: 10px; border-radius: 5px; border: none; }
-button { background: #00ffcc; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }

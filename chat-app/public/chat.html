@@ -8,14 +8,28 @@
 <body>
     <header>CHAT DOS FOFO 💕</header>
     
-    <div id="online-box">
-        <h4>Online (<span id="user-count">0</span>)</h4>
-        <ul id="user-list"></ul>
+    <div id="sidebar-container">
+        <div id="profile-edit">
+            <button onclick="toggleEdit()">⚙️ Editar Perfil</button>
+            <div id="edit-fields" style="display:none;">
+                <input id="new-name" placeholder="Novo nome...">
+                <input id="new-photo" placeholder="Novo link foto...">
+                <button onclick="updateProfile()">Salvar</button>
+            </div>
+        </div>
+        
+        <div id="online-box">
+            <h4>Online (<span id="user-count">0</span>)</h4>
+            <ul id="user-list"></ul>
+        </div>
     </div>
 
     <div id="chat"></div>
 
     <div id="inputArea">
+        <button onclick="document.getElementById('file-input').click()">📷</button>
+        <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
+        
         <input id="message" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
         <button onclick="sendMessage()">Enviar</button>
     </div>

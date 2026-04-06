@@ -4,7 +4,8 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+// Aumentar o limite para poder enviar fotos pesadas
+const io = socketIo(server, { maxHttpBufferSize: 1e7 }); 
 
 app.use(express.static('public'));
 
@@ -16,10 +17,23 @@ io.on('connection', (socket) => {
         io.emit('updateUserList', Object.values(users));
     });
 
-    socket.on('message', (text) => {
+    socket.on('updateProfile', (data) => {
+        if (users[socket.id]) {
+            users[socket.id].name = data.name;
+            users[socket.id].photo = data.photo;
+            io.emit('updateUserList', Object.values(users));
+        }
+    });
+
+    socket.on('message', (data) => {
         const userData = users[socket.id];
         if (userData) {
-            io.emit('message', { user: userData.name, photo: userData.photo, text: text });
+            io.emit('message', { 
+                user: userData.name, 
+                photo: userData.photo, 
+                type: data.type, 
+                content: data.content 
+            });
         }
     });
 
