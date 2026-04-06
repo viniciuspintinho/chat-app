@@ -1,59 +1,67 @@
 const socket = io();
 const chat = document.getElementById('chat');
 const messageInput = document.getElementById('message');
-const userList = document.getElementById('user-list');
+const replyContainer = document.getElementById('reply-container');
+const replyText = document.getElementById('reply-text');
 
 let myName = localStorage.getItem("username");
 let myPhoto = localStorage.getItem("userphoto");
+let replyData = null; // Guarda a mensagem que vamos responder
 
-// Conectar ao entrar
 socket.emit('join', { name: myName, photo: myPhoto });
 
-// Enviar texto
+function setReply(user, text) {
+    replyData = { user, text: text.substring(0, 30) + (text.length > 30 ? '...' : '') };
+    replyText.innerText = `Respondendo a ${user}: "${replyData.text}"`;
+    replyContainer.style.display = 'flex';
+    messageInput.focus();
+}
+
+function cancelReply() {
+    replyData = null;
+    replyContainer.style.display = 'none';
+}
+
 function sendMessage() {
     const text = messageInput.value;
     if (text.trim() !== "") {
-        socket.emit('message', { type: 'text', content: text });
+        socket.emit('message', { 
+            type: 'text', 
+            content: text, 
+            reply: replyData 
+        });
         messageInput.value = '';
+        cancelReply();
     }
 }
 
-// Enviar imagem
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            socket.emit('message', { type: 'image', content: e.target.result });
+            socket.emit('message', { 
+                type: 'image', 
+                content: e.target.result, 
+                reply: replyData 
+            });
+            cancelReply();
         };
         reader.readAsDataURL(file);
     }
 }
 
-// Editar Perfil
-function toggleEdit() {
-    const fields = document.getElementById('edit-fields');
-    fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
-}
-
-function updateProfile() {
-    const name = document.getElementById('new-name').value;
-    const photo = document.getElementById('new-photo').value;
-    if (name) myName = name;
-    if (photo) myPhoto = photo;
-
-    localStorage.setItem("username", myName);
-    localStorage.setItem("userphoto", myPhoto);
-    socket.emit('updateProfile', { name: myName, photo: myPhoto });
-    toggleEdit();
-}
-
-// Receber mensagens
 socket.on('message', (data) => {
     const div = document.createElement('div');
     div.classList.add('msg');
     
-    const contentHTML = data.type === 'image' 
+    // HTML da Resposta (se houver)
+    let replyHTML = data.reply ? `
+        <div class="reply-info">
+            <strong>@${data.reply.user}</strong>: ${data.reply.text}
+        </div>` : '';
+
+    let contentHTML = data.type === 'image' 
         ? `<img src="${data.content}" class="chat-img">` 
         : `<div>${data.content}</div>`;
 
@@ -62,20 +70,14 @@ socket.on('message', (data) => {
             <img src="${data.photo}" class="msg-avatar">
             <strong>${data.user}</strong>
         </div>
+        ${replyHTML}
         ${contentHTML}
+        <div class="msg-footer">
+            <button class="btn-reply-small" onclick="setReply('${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')">Responder</button>
+        </div>
     `;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 });
 
-// Lista Online
-socket.on('updateUserList', (list) => {
-    document.getElementById('user-count').innerText = list.length;
-    userList.innerHTML = '';
-    list.forEach(u => {
-        const li = document.createElement('li');
-        li.classList.add('online-user');
-        li.innerHTML = `<img src="${u.photo}" class="avatar-mini"> <span>${u.name}</span>`;
-        userList.appendChild(li);
-    });
-});
+// ... (Mantenha o resto das funções updateProfile e updateUserList que já tinha)

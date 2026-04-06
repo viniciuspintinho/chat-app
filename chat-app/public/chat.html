@@ -18,7 +18,6 @@
                 <button class="btn-save" onclick="updateProfile()">Salvar</button>
             </div>
         </div>
-        
         <div class="panel-section online-box">
             <h4>Online (<span id="user-count">0</span>)</h4>
             <ul id="user-list"></ul>
@@ -27,10 +26,14 @@
 
     <div id="chat"></div>
 
+    <div id="reply-container" style="display:none;">
+        <span id="reply-text"></span>
+        <button onclick="cancelReply()">✕</button>
+    </div>
+
     <div id="inputArea">
         <button class="btn-icon" onclick="document.getElementById('file-input').click()">📷</button>
         <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
-        
         <input id="message" placeholder="Escreva uma mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
         <button class="btn-send" onclick="sendMessage()">Enviar</button>
     </div>
