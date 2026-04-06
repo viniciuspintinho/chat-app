@@ -1,28 +1,52 @@
-// ... (mantenha suas variáveis de socket e localStorage lá no topo)
+const socket = io();
+const chat = document.getElementById('chat');
+const chatContainer = document.getElementById('chat-container');
+const messageInput = document.getElementById('message');
 
-// Função de Scroll Suave Corrigida
-function scrollToBottom() {
-    chatContainer.scrollTo({
-        top: chatContainer.scrollHeight,
-        behavior: 'smooth'
-    });
+let myName = localStorage.getItem("username") || "Anônimo";
+let myPhoto = localStorage.getItem("userphoto") || "";
+
+socket.emit('join', { name: myName, photo: myPhoto });
+
+function sendMessage() {
+    const text = messageInput.value;
+    if (text.trim() !== "") {
+        socket.emit('message', { type: 'text', content: text });
+        messageInput.value = '';
+    }
 }
 
-// Atualizar o socket.on('message') para usar essa função
+// RECEBER MENSAGEM
 socket.on('message', (data) => {
-    // ... (sua lógica de criar a div da mensagem igual antes)
+    const div = document.createElement('div');
+    div.classList.add('msg');
+    
+    let contentHTML = data.type === 'image' 
+        ? `<img src="${data.content}" class="chat-img">` 
+        : `<div>${data.content}</div>`;
+
+    div.innerHTML = `
+        <div style="font-size:10px; color:#00ffcc; margin-bottom:4px;">
+            <strong>${data.user}</strong>
+        </div>
+        ${contentHTML}
+    `;
+    
     chat.appendChild(div);
-    scrollToBottom();
+    
+    // Rolar para baixo automaticamente
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 });
 
-// Alternar Tema com persistência
-function toggleTheme() {
-    const body = document.body;
-    body.classList.toggle('light-theme');
-    const theme = body.classList.contains('light-theme') ? 'light' : 'dark';
-    localStorage.setItem('selected-theme', theme);
-}
-
-// Aplicar tema salvo ao carregar
-const currentTheme = localStorage.getItem('selected-theme');
-if (currentTheme === 'light') document.body.classList.add('light-theme');
+// Atualizar usuários online
+socket.on('updateUserList', (list) => {
+    document.getElementById('user-count').innerText = list.length;
+    const userList = document.getElementById('user-list');
+    userList.innerHTML = '';
+    list.forEach(u => {
+        const li = document.createElement('li');
+        li.style.fontSize = "12px";
+        li.innerText = `● ${u.name}`;
+        userList.appendChild(li);
+    });
+});
