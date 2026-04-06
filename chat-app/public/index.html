@@ -1,31 +1,22 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
 <div class="login">
-  <h2>Entrar no Chat</h2>
-  <input id="username" placeholder="Seu nome" />
-  <button onclick="login()">Entrar</button>
+    <h2>Entrar no Chat</h2>
+    <input id="username" placeholder="Seu nome" />
+    <input id="userphoto" placeholder="Link da sua foto (URL)" />
+    <button onclick="login()">Entrar</button>
 </div>
 
 <script>
 function login() {
-  const name = document.getElementById("username").value;
+    const name = document.getElementById("username").value;
+    const photo = document.getElementById("userphoto").value || "https://ui-avatars.com/api/?name=" + name;
 
-  if (!name) {
-    alert("Digite um nome");
-    return;
-  }
+    if (!name) {
+        alert("Digite um nome");
+        return;
+    }
 
-  localStorage.setItem("username", name);
-  window.location.href = "chat.html";
+    localStorage.setItem("username", name);
+    localStorage.setItem("userphoto", photo); // Salva a foto
+    window.location.href = "chat.html";
 }
 </script>
-
-</body>
-</html>

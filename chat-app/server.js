@@ -1,25 +1,17 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
-
-app.use(express.static('public'));
-
-let users = {};
+let users = {}; 
 
 io.on('connection', (socket) => {
-    socket.on('join', (username) => {
-        users[socket.id] = username || 'Anônimo';
+    socket.on('join', (data) => {
+        // Agora data é { name: '...', photo: '...' }
+        users[socket.id] = { name: data.name, photo: data.photo };
         io.emit('updateUserList', Object.values(users));
     });
 
     socket.on('message', (data) => {
         io.emit('message', {
-            user: users[socket.id],
-            text: data
+            user: users[socket.id].name,
+            photo: data.photo,
+            text: data.text
         });
     });
 
@@ -27,9 +19,4 @@ io.on('connection', (socket) => {
         delete users[socket.id];
         io.emit('updateUserList', Object.values(users));
     });
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Rodando na porta ${PORT}`);
 });

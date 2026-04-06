@@ -2,38 +2,45 @@ const socket = io();
 const chat = document.getElementById('chat');
 const messageInput = document.getElementById('message');
 const userList = document.getElementById('user-list');
-const userCount = document.getElementById('user-count');
 
-const username = localStorage.getItem("username") || "Visitante";
+const username = localStorage.getItem("username");
+const userphoto = localStorage.getItem("userphoto");
 
-// Avisa o servidor que entramos
-socket.emit('join', username);
+// Envia nome E foto ao entrar
+socket.emit('join', { name: username, photo: userphoto });
 
-// Enviar mensagem
 function sendMessage() {
     const text = messageInput.value;
     if (text.trim() !== "") {
-        socket.emit('message', text);
+        // Envia a foto junto com a mensagem
+        socket.emit('message', { text: text, photo: userphoto });
         messageInput.value = '';
     }
 }
 
-// Receber mensagem
 socket.on('message', (data) => {
     const div = document.createElement('div');
     div.classList.add('msg');
-    div.innerHTML = `<strong>${data.user}:</strong> ${data.text}`;
+    div.innerHTML = `
+        <div class="msg-header">
+            <img src="${data.photo}" class="msg-avatar">
+            <span>${data.user}</span>
+        </div>
+        <div>${data.text}</div>
+    `;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 });
 
-// Atualizar lista de quem está online
-socket.on('updateUserList', (list) => {
-    userCount.innerText = list.length;
+socket.on('updateUserList', (users) => {
     userList.innerHTML = '';
-    list.forEach(name => {
+    users.forEach(user => {
         const li = document.createElement('li');
-        li.innerText = `🟢 ${name}`;
+        li.classList.add('user-info');
+        li.innerHTML = `
+            <img src="${user.photo}" class="avatar">
+            <span>${user.name}</span>
+        `;
         userList.appendChild(li);
     });
 });
