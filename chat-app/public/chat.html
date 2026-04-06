@@ -5,24 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat dos Fofo 💕</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body class="dark-theme">
     <header>
-        <span>CHAT DOS FOFO 💕</span>
-        <button id="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+        <div class="logo">✨ CHAT DOS FOFO <span>💕</span></div>
+        <button id="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
     </header>
     
     <div id="side-panel">
-        <div class="panel-section">
-            <button class="btn-edit" onclick="toggleEdit()">⚙️ Editar Perfil</button>
+        <div id="news-board">
+            <div class="news-header">📢 NOVIDADES</div>
+            <p>Sistema de respostas ativo! 🚀 Aproveite as fotos e o novo visual!</p>
+        </div>
+
+        <div class="panel-section profile-card">
+            <button class="btn-edit" onclick="toggleEdit()">⚙️ Meu Perfil</button>
             <div id="edit-fields" style="display:none;">
                 <input id="new-name" placeholder="Novo nome...">
                 <input id="new-photo" placeholder="Link da foto...">
-                <button class="btn-save" onclick="updateProfile()">Salvar</button>
+                <button class="btn-save" onclick="updateProfile()">Confirmar</button>
             </div>
         </div>
+
         <div class="panel-section online-box">
-            <h4>Online (<span id="user-count">0</span>)</h4>
+            <h4>🟢 Online (<span id="user-count">0</span>)</h4>
             <ul id="user-list"></ul>
         </div>
     </div>
@@ -32,15 +39,22 @@
     </div>
 
     <div id="reply-container" style="display:none;">
-        <span id="reply-text"></span>
-        <button onclick="cancelReply()">✕</button>
+        <div class="reply-content">
+            <small>Respondendo a uma mensagem</small>
+            <span id="reply-text"></span>
+        </div>
+        <button class="cancel-reply" onclick="cancelReply()">✕</button>
     </div>
 
     <div id="inputArea">
-        <button class="btn-icon" onclick="document.getElementById('file-input').click()">📷</button>
-        <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
-        <input id="message" placeholder="Digite uma mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button class="btn-send" onclick="sendMessage()">Enviar</button>
+        <div class="input-wrapper">
+            <button class="btn-icon" onclick="document.getElementById('file-input').click()">📷</button>
+            <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
+            <input id="message" placeholder="Escreva algo incrível..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn-send" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            </button>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
