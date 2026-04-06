@@ -12,14 +12,14 @@ let users = {};
 
 io.on('connection', (socket) => {
     socket.on('join', (data) => {
-        // Guarda o objeto completo: nome e foto
+        // Recebe { name, photo }
         users[socket.id] = { name: data.name, photo: data.photo };
-        io.emit('updateUserList', Object.values(users));
     });
 
     socket.on('message', (text) => {
         const userData = users[socket.id];
         if (userData) {
+            // Manda de volta para todos o nome, foto e texto
             io.emit('message', {
                 user: userData.name,
                 photo: userData.photo,
@@ -30,11 +30,10 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         delete users[socket.id];
-        io.emit('updateUserList', Object.values(users));
     });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Rodando na porta ${PORT}`);
 });

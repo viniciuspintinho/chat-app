@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - Chat</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: sans-serif; background: #111; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login { background: #222; padding: 30px; border-radius: 10px; text-align: center; }
+        input { padding: 10px; margin: 10px 0; width: 250px; background: #333; border: 1px solid #444; color: #fff; border-radius: 5px; }
+        button { padding: 10px 20px; background: #00ffcc; border: none; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <h2>Bem-vindo ao Chat 💕</h2>
-            <input id="username" placeholder="Seu nome..." />
-            <input id="userphoto" placeholder="Link da foto (opcional)..." />
-            <button onclick="login()">Entrar no Chat</button>
-        </div>
+    <div class="login">
+        <h2>Entrar no Chat</h2>
+        <input id="username" placeholder="Seu nome..." />
+        <input id="userphoto" placeholder="Link da foto (URL) - opcional" />
+        <button onclick="login()">Entrar</button>
     </div>
 
     <script>
