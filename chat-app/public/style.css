@@ -1,49 +1,132 @@
-/* ... Mantenha o que já tinha e adicione/ajuste isto ... */
-
-/* Estilo da Citação (Resposta) */
-.reply-info {
-    background: rgba(0, 0, 0, 0.2);
-    border-left: 3px solid #00ffcc;
-    padding: 5px 8px;
-    margin-bottom: 5px;
-    font-size: 11px;
-    border-radius: 4px;
-    color: #bbb;
+/* Variáveis de Cores */
+.dark-theme {
+    --bg-body: #0f0f13;
+    --bg-header: #1a1a24;
+    --bg-msg: #252533;
+    --text-color: #ffffff;
+    --accent-color: #00ffcc;
+    --border-color: #333;
+    --input-bg: #1e1e2a;
 }
 
-#reply-container {
-    background: #222;
-    padding: 8px 20px;
-    border-top: 1px solid #00ffcc;
+.light-theme {
+    --bg-body: #f0f2f5;
+    --bg-header: #ffffff;
+    --bg-msg: #ffffff;
+    --text-color: #333333;
+    --accent-color: #6200ee;
+    --border-color: #ddd;
+    --input-bg: #ffffff;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-body);
+    color: var(--text-color);
+    transition: 0.3s;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: var(--bg-header);
+    padding: 15px 25px;
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
-    color: #00ffcc;
+    align-items: center;
+    border-bottom: 2px solid var(--accent-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* LIMITE DAS FOTOS NO CHAT */
-.chat-img {
-    max-width: 250px;    /* Largura máxima */
-    max-height: 250px;   /* Altura máxima */
-    border-radius: 10px;
-    margin-top: 5px;
-    object-fit: contain; /* Não distorce a imagem */
-    display: block;
-    cursor: pointer;
-}
-
-/* Botão de responder ao lado da mensagem */
-.btn-reply-small {
-    background: none;
+#theme-toggle {
+    background: var(--accent-color);
     border: none;
-    color: #666;
-    font-size: 10px;
+    padding: 8px 15px;
+    border-radius: 20px;
     cursor: pointer;
-    margin-left: 10px;
+    font-weight: bold;
+    color: #000;
 }
-.btn-reply-small:hover { color: #00ffcc; }
 
-.msg-footer {
+/* Painel Lateral */
+#side-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 200px;
+    z-index: 100;
+}
+
+.panel-section {
+    background: var(--bg-header);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Balão de Mensagem */
+.msg {
+    background: var(--bg-msg);
+    padding: 15px;
+    border-radius: 18px;
+    border-bottom-left-radius: 2px;
+    max-width: 70%;
+    align-self: flex-start;
+    margin: 10px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--border-color);
+}
+
+.msg-header {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent-color);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+}
+
+/* Input Area */
+#inputArea {
+    background: var(--bg-header);
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+#message {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+}
+
+.btn-send {
+    background: var(--accent-color);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.chat-img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    margin: 10px 0;
 }
