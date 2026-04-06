@@ -2,25 +2,23 @@ const socket = io();
 const chat = document.getElementById('chat');
 const chatContainer = document.getElementById('chat-container');
 const messageInput = document.getElementById('message');
-// Variáveis para o sistema de resposta funcionar
 const replyBox = document.getElementById('reply-container');
 const replyText = document.getElementById('reply-text');
 
 let myName = localStorage.getItem("username") || "Anônimo";
 let myPhoto = localStorage.getItem("userphoto") || "";
-let replyingTo = null; // Guarda a resposta
+let myColor = localStorage.getItem("usercolor") || "#00f2ff";
+let replyingTo = null;
 
-socket.emit('join', { name: myName, photo: myPhoto });
-
-// --- FUNÇÕES DE ENVIO ---
+// Conectar enviando a cor
+socket.emit('join', { name: myName, photo: myPhoto, color: myColor });
 
 function sendMessage() {
     const text = messageInput.value;
     if (text.trim() !== "") {
-        // Agora envia também o objeto de resposta (mesmo que seja null)
         socket.emit('message', { type: 'text', content: text, reply: replyingTo });
         messageInput.value = '';
-        cancelReply(); // Limpa a resposta após enviar
+        cancelReply();
     }
 }
 
@@ -36,13 +34,14 @@ function sendImage(input) {
     }
 }
 
-// --- FUNÇÕES DE SISTEMA (REPLY E PERFIL) ---
+function react(msgId, emoji) {
+    socket.emit('reaction', { msgId, emoji });
+}
 
 function startReply(user, content) {
     replyingTo = { user, content: content.substring(0, 20) + "..." };
     replyText.innerText = `Respondendo a ${user}: ${replyingTo.content}`;
     replyBox.style.display = 'flex';
-    messageInput.focus();
 }
 
 function cancelReply() {
@@ -52,66 +51,80 @@ function cancelReply() {
 
 function toggleEdit() {
     const fields = document.getElementById('edit-fields');
-    if(fields) fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
+    fields.style.display = fields.style.display === 'none' ? 'block' : 'none';
 }
 
 function updateProfile() {
     const name = document.getElementById('new-name').value;
     const photo = document.getElementById('new-photo').value;
+    const color = document.getElementById('new-color').value;
+
     if (name) myName = name;
     if (photo) myPhoto = photo;
+    if (color) myColor = color;
+
     localStorage.setItem("username", myName);
     localStorage.setItem("userphoto", myPhoto);
-    socket.emit('updateProfile', { name: myName, photo: myPhoto });
+    localStorage.setItem("usercolor", myColor);
+
+    socket.emit('updateProfile', { name: myName, photo: myPhoto, color: myColor });
     toggleEdit();
-    alert("Perfil Atualizado!");
 }
 
-// --- RECEBIMENTO DE MENSAGENS ---
-
 socket.on('message', (data) => {
+    const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
     const div = document.createElement('div');
-    div.classList.add('msg');
     
-    // Lógica para mostrar a tag de resposta se houver
-    let replyHTML = data.reply ? `<div class="reply-tag" style="background:rgba(0,0,0,0.2); padding:5px; font-size:10px; border-left:2px solid #00ffcc; margin-bottom:5px;"><strong>@${data.reply.user}</strong>: ${data.reply.content}</div>` : '';
-    
-    let contentHTML = data.type === 'image' 
-        ? `<img src="${data.content}" class="chat-img" style="max-width:200px; border-radius:10px;">` 
-        : `<div>${data.content}</div>`;
+    if(data.type === 'system') {
+        div.style.cssText = `color: ${data.color}; text-align: center; font-size: 12px; margin: 10px 0; font-weight: bold;`;
+        div.innerText = data.content;
+    } else {
+        div.classList.add('msg');
+        div.id = msgId;
+        div.style.borderLeft = `3px solid ${data.color}`; // Cor personalizada na borda
 
-    div.innerHTML = `
-        <div style="font-size:10px; color:#00ffcc; margin-bottom:4px;">
-            <img src="${data.photo}" style="width:20px; height:20px; border-radius:50%; vertical-align:middle; margin-right:5px;">
-            <strong>${data.user}</strong>
-        </div>
-        ${replyHTML}
-        ${contentHTML}
-        <button onclick="startReply('${data.user}', '${data.type==='image'?'Foto':data.content}')" style="background:none; border:none; color:#666; font-size:10px; cursor:pointer; display:block; margin-top:5px;">Responder</button>
-    `;
-    
+        let replyHTML = data.reply ? `<div class="reply-tag"><strong>@${data.reply.user}</strong>: ${data.reply.content}</div>` : '';
+        let contentHTML = data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<div>${data.content}</div>`;
+
+        div.innerHTML = `
+            <div class="msg-header" style="color: ${data.color}">
+                <strong>${data.user}</strong>
+            </div>
+            ${replyHTML}
+            ${contentHTML}
+            <div class="reactions" id="reac-${msgId}" style="margin-top:5px; display:flex; gap:3px;"></div>
+            <div class="reaction-bar">
+                <button onclick="react('${msgId}', '❤️')">❤️</button>
+                <button onclick="react('${msgId}', '😂')">😂</button>
+                <button onclick="react('${msgId}', '😮')">😮</button>
+                <button onclick="startReply('${data.user}', '${data.type==='image'?'Foto':data.content}')">Ref</button>
+            </div>
+        `;
+    }
     chat.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
 });
 
-// Atualizar usuários online
-socket.on('updateUserList', (list) => {
-    const userCountEl = document.getElementById('user-count');
-    if(userCountEl) userCountEl.innerText = list.length;
-    
-    const userList = document.getElementById('user-list');
-    if(userList) {
-        userList.innerHTML = '';
-        list.forEach(u => {
-            const li = document.createElement('li');
-            li.style.fontSize = "12px";
-            li.style.listStyle = "none";
-            li.innerHTML = `<img src="${u.photo}" style="width:15px; height:15px; border-radius:50%; margin-right:5px;"> ${u.name}`;
-            userList.appendChild(li);
-        });
+socket.on('reaction', (data) => {
+    const reacDiv = document.getElementById(`reac-${data.msgId}`);
+    if(reacDiv) {
+        const span = document.createElement('span');
+        span.innerText = data.emoji;
+        span.style.fontSize = "12px";
+        reacDiv.appendChild(span);
     }
 });
 
-function toggleTheme() {
-    document.body.classList.toggle('light-theme');
-}
+socket.on('updateUserList', (list) => {
+    document.getElementById('user-count').innerText = list.length;
+    const userList = document.getElementById('user-list');
+    userList.innerHTML = '';
+    list.forEach(u => {
+        const li = document.createElement('li');
+        li.style.cssText = "list-style: none; font-size: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;";
+        li.innerHTML = `<img src="${u.photo}" style="width:18px;height:18px;border-radius:50%"> <span style="color:${u.color}">${u.name}</span>`;
+        userList.appendChild(li);
+    });
+});
+
+function toggleTheme() { document.body.classList.toggle('light-theme'); }

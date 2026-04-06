@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat dos Fofo 💕</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,16 +14,17 @@
     
     <div id="side-panel">
         <div id="news-board">
-            <strong>Avisos att-18📢
-            </strong>
-            <p>Chat atualizado e funcionando!</p>
+            <strong>Novidades 📢</strong>
+            <p>Reações e Cores Personalizadas ativas! Escolha sua cor no perfil.</p>
         </div>
         <div class="panel-section">
-            <button class="btn-edit" onclick="toggleEdit()">⚙️ Perfil</button>
-            <div id="edit-fields" style="display:none;">
-                <input id="new-name" placeholder="Nome...">
-                <input id="new-photo" placeholder="Link foto...">
-                <button onclick="updateProfile()">Salvar</button>
+            <button class="btn-edit" onclick="toggleEdit()">⚙️ Meu Perfil</button>
+            <div id="edit-fields" style="display:none; margin-top:10px;">
+                <input id="new-name" placeholder="Novo nome..." style="width:100%; margin-bottom:5px;">
+                <input id="new-photo" placeholder="Link da foto..." style="width:100%; margin-bottom:5px;">
+                <label style="font-size:10px; display:block; margin-bottom:2px;">Cor do Nome:</label>
+                <input type="color" id="new-color" value="#00f2ff" style="width:100%; height:30px; border:none; background:none; cursor:pointer;">
+                <button onclick="updateProfile()" style="width:100%; margin-top:5px; cursor:pointer;">Salvar</button>
             </div>
         </div>
         <div class="panel-section">
@@ -32,7 +34,8 @@
     </div>
 
     <div id="chat-container">
-        <div id="chat"></div> </div>
+        <div id="chat"></div>
+    </div>
 
     <div id="reply-container" style="display:none;">
         <span id="reply-text"></span>
@@ -40,10 +43,10 @@
     </div>
 
     <div id="inputArea">
-        <button onclick="document.getElementById('file-input').click()">📷</button>
+        <button class="btn-icon-camera" onclick="document.getElementById('file-input').click()">📷</button>
         <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
-        <input id="message" placeholder="Digite algo..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button class="btn-send" onclick="sendMessage()">Enviar</button>
+        <input id="message" placeholder="Digite uma mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button class="btn-send-main" onclick="sendMessage()">Enviar</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
