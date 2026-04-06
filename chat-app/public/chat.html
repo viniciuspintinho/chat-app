@@ -1,55 +1,31 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Chat dos Fofo 💕</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="dark-theme">
-    <header>
-        <span>CHAT DOS FOFO 💕</span>
-        <button onclick="document.body.classList.toggle('light-theme')">🌓 Tema</button>
+<div class="chat-wrapper">
+    <header class="header">
+        <h1>CHAT DOS FOFO 💕</h1>
+        <button class="btn-emoji">Tema 🌗</button>
     </header>
-    
-    <div id="side-panel">
-        <div id="news-board"><strong>Avisos 📢</strong><p>Modo 🔥 ativo! Mensagens autodestrutivas.</p></div>
-        <div class="panel-section">
-            <button onclick="toggleEdit()">⚙️ Meu Perfil</button>
-            <div id="edit-fields" style="display:none; margin-top:10px;">
-                <input id="new-name" placeholder="Nome...">
-                <input id="new-photo" placeholder="Link foto...">
-                <input type="color" id="new-color" value="#00f2ff">
-                <button onclick="updateProfile()">Salvar</button>
-            </div>
+
+    <div class="online-list">
+        <span class="user-tag" style="color: #00e5ff;">Raevosa</span>
+        <span class="user-tag" style="color: #a020f0;">ridiculo</span>
+    </div>
+
+    <main class="messages-container">
+        <div class="message received">
+            <span class="username" style="color: #a020f0;">ridiculo</span>
+            oi
         </div>
-        <div class="panel-section">
-            <h4>Online (<span id="user-count">0</span>)</h4>
-            <ul id="user-list"></ul>
+    </main>
+
+    <footer class="footer">
+        <div class="action-buttons">
+            <button class="btn-emoji">❤️</button>
+            <button class="btn-emoji">😂</button>
+            <button class="btn-emoji">🔥</button>
+            <button class="btn-emoji">💬</button>
         </div>
-    </div>
-
-    <div id="chat-container">
-        <div id="chat"></div>
-    </div>
-
-    <div id="typing-indicator"></div>
-
-    <div id="reply-container" style="display:none;">
-        <span id="reply-text"></span>
-        <button onclick="cancelReply()">✕</button>
-    </div>
-
-    <div id="inputArea">
-        <div class="input-wrapper">
-            <button id="burn-btn" onclick="toggleBurn()">🔥</button>
-            <button onclick="document.getElementById('file-input').click()">📷</button>
-            <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="sendImage(this)">
-            <input id="message" placeholder="Escreve algo..." oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn-send-main" onclick="sendMessage()">Enviar</button>
+        <div class="input-group">
+            <input type="text" placeholder="Escreva algo...">
+            <button class="btn-send">Enviar</button>
         </div>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+    </footer>
+</div>
