@@ -1,35 +1,370 @@
-body { margin: 0; font-family: sans-serif; background: #0a0a0f; color: white; height: 100vh; display: flex; flex-direction: column; }
-
-/* Container que permite o scroll */
-#chat-container {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column; /* Mensagens de cima para baixo */
-    padding: 20px;
-    padding-right: 220px; /* Espaço para o painel lateral */
+/* --- RESET E FONTES --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Onde as mensagens são injetadas */
+/* --- VARIÁVEIS DE CORES NEON (CHAMATIVAS) --- */
+:root {
+    --bg-body: #050509; /* Fundo quase preto */
+    --bg-panel: rgba(20, 20, 35, 0.8); /* Fundo dos painéis com transparência */
+    --bg-msg-user: #1a1a2e; /* Balão de mensagem de outros */
+    --text-main: #ffffff;
+    --neon-cyan: #00f2ff; /* Ciano Neon brilhante */
+    --neon-pink: #ff0077; /* Rosa Neon brilhante */
+    --neon-purple: #9b00ff; /* Roxo Neon */
+    --border-glow: rgba(0, 242, 255, 0.3); /* Brilho da borda */
+    --glass: blur(10px) saturate(180%); /* Efeito de vidro */
+}
+
+/* MODO CLARO (Ajustado para manter o estilo moderno) */
+.light-theme {
+    --bg-body: #f0f2f5;
+    --bg-panel: rgba(255, 255, 255, 0.9);
+    --bg-msg-user: #ffffff;
+    --text-main: #2d3436;
+    --accent: #6c5ce7;
+    --border-glow: rgba(108, 92, 231, 0.2);
+}
+
+/* --- CORPO DA PÁGINA --- */
+body {
+    background: var(--bg-body);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Impede scroll no body, o scroll será no chat */
+    transition: background 0.3s ease;
+}
+
+/* --- HEADER (TOPO) --- */
+header {
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass);
+    -webkit-backdrop-filter: var(--glass);
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 15px var(--neon-cyan);
+    z-index: 10;
+}
+
+header span {
+    font-weight: bold;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px var(--neon-cyan), 0 0 10px var(--neon-cyan);
+}
+
+header button {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+header button:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+/* --- PAINEL LATERAL (DIREITO) --- */
+#side-panel {
+    position: fixed;
+    top: 85px; /* Logo abaixo do header */
+    right: 20px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 5;
+}
+
+/* MURAL DE AVISOS (EXTREMAMENTE CHAMATIVO) */
+#news-board {
+    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    box-shadow: 0 0 20px rgba(255, 0, 119, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#news-board strong {
+    display: block;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* SEÇÕES DO PAINEL (PERFIL E ONLINE) */
+.panel-section {
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass);
+    -webkit-backdrop-filter: var(--glass);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid var(--border-glow);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.panel-section h4 {
+    color: var(--neon-cyan);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+/* LISTA DE USUÁRIOS ONLINE */
+#user-list {
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#user-list li {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+/* BOTOES E INPUTS DO PAINEL */
+.btn-edit, .btn-save, #edit-fields button {
+    width: 100%;
+    background: #333;
+    border: 1px solid #444;
+    color: white;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+}
+
+.btn-edit:hover, #edit-fields button:hover {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+}
+
+#edit-fields input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    background: #000;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 5px;
+    font-size: 0.8rem;
+}
+
+/* --- CONTAINER DO CHAT (ÁREA DE MENSAGENS) --- */
+#chat-container {
+    flex: 1; /* Ocupa todo o espaço restante vertical */
+    overflow-y: auto; /* Scroll apenas aqui */
+    padding: 20px 240px 100px 30px; /* Padding extra na direita para o painel lateral e embaixo para o input */
+    scroll-behavior: smooth;
+}
+
+/* ONDE AS MENSAGENS SÃO INJETADAS PELO JS */
 #chat {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
+/* BALÃO DE MENSAGEM GERAL */
 .msg {
-    background: #1e1e2e;
-    padding: 12px;
-    border-radius: 12px;
-    max-width: 80%;
-    align-self: flex-start; /* Alinha na esquerda */
+    background: var(--bg-msg-user);
+    padding: 15px;
+    border-radius: 18px 18px 18px 5px; /* Ponta arredondada diferente */
+    max-width: 70%;
+    align-self: flex-start;
+    border: 1px solid var(--border-glow);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+/* CABEÇALHO DA MENSAGEM (NOME) */
+.msg strong {
+    display: block;
+    color: var(--neon-cyan);
+    font-size: 0.75rem;
+    margin-bottom: 5px;
+    text-shadow: 0 0 3px var(--neon-cyan);
+}
+
+/* CONTEÚDO DA MENSAGEM (TEXTO) */
+.msg div {
+    font-size: 0.95rem;
+    line-height: 1.4;
     word-wrap: break-word;
 }
 
-.chat-img { max-width: 200px; border-radius: 10px; margin-top: 5px; }
+/* IMAGENS ENVIADAS NO CHAT (LIMITE REAL) */
+.chat-img {
+    max-width: 250px;
+    max-height: 250px;
+    border-radius: 12px;
+    margin-top: 8px;
+    border: 2px solid var(--border-glow);
+    object-fit: cover;
+    display: block;
+}
 
-#side-panel { position: fixed; top: 70px; right: 10px; width: 180px; }
-.panel-section { background: #1a1a24; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #333; }
+/* TAG DE RESPOSTA CITADA */
+.reply-tag {
+    background: rgba(0,0,0,0.4);
+    border-left: 3px solid var(--neon-pink);
+    padding: 8px;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    color: #bbb;
+}
 
-#inputArea { background: #1a1a24; padding: 15px; display: flex; gap: 10px; }
-#message { flex: 1; padding: 10px; border-radius: 20px; border: none; }
+/* BOTÃO RESPONDER DENTRO DA MENSAGEM */
+.btn-reply-small {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.7rem;
+    cursor: pointer;
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.msg:hover .btn-reply-small {
+    opacity: 1;
+}
+
+.btn-reply-small:hover {
+    color: var(--neon-cyan);
+}
+
+/* --- BARRA DE RESPOSTA (ACIMA DO INPUT) --- */
+#reply-container {
+    position: fixed;
+    bottom: 80px; /* Logo acima do input area */
+    left: 20px;
+    right: 20px;
+    background: #111;
+    border: 1px solid var(--neon-pink);
+    border-radius: 10px;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--neon-pink);
+    font-size: 0.8rem;
+    box-shadow: 0 0 10px rgba(255, 0, 119, 0.3);
+    z-index: 4;
+}
+
+#reply-container button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* --- ÁREA DE INPUT (BARRA DE DIGITAÇÃO) --- */
+#inputArea {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass);
+    -webkit-backdrop-filter: var(--glass);
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-top: 1px solid var(--border-glow);
+    z-index: 3;
+}
+
+/* BOTÃO DE CÂMERA */
+.btn-icon-camera {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #fff;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.btn-icon-camera:hover {
+    opacity: 1;
+    color: var(--neon-cyan);
+}
+
+/* CAMPO DE TEXTO */
+#message {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 1px solid var(--border-glow);
+    background: #000;
+    color: white;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+#message:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--border-glow);
+}
+
+/* BOTÃO ENVIAR (CHAMATIVO) */
+.btn-send-main {
+    background: linear-gradient(135deg, var(--neon-cyan), #00a2ff);
+    color: #000;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-send-main:hover {
+    box-shadow: 0 0 15px var(--neon-cyan);
+    transform: scale(1.03);
+}
+
+/* --- SCROLLBAR BONITA (CHROME) --- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #050509;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2a2a3a;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3a4a;
+}
