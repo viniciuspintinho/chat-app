@@ -35,11 +35,13 @@ function setReply(msgId, userName, text) {
         document.getElementById('main-content').insertBefore(replyPreview, typingIndicator);
     }
     replyPreview.innerHTML = `
-        <div class="reply-content">
-            <small style="color:var(--accent)">Respondendo a <strong>${userName}</strong></small>
-            <p style="margin:0; opacity:0.8; font-size:0.8rem">${text}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <div>
+                <small style="color:var(--accent)">Respondendo a <strong>${userName}</strong></small>
+                <p style="margin:0; opacity:0.8; font-size:0.8rem">${text}</p>
+            </div>
+            <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
     `;
     messageInput.focus();
 }
@@ -50,16 +52,15 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// ENVIO DE MENSAGEM COM COMANDO /LOVE
+// ENVIO DE MENSAGEM (CORREÇÃO DO /LOVE)
 function sendMessage() {
     let text = messageInput.value.trim();
     if (text) {
-        // NOVO: Comando /love @nome
         if (text.startsWith('/love ')) {
             const target = text.replace('/love ', '').trim();
             socket.emit('message', { 
                 type: 'system', 
-                content: `💖 ${userData.name} espalhou muito amor para ${target}!`, 
+                content: `💖 ${userData.name} espalhou amor para ${target}!`, 
                 color: '#ff4bb4' 
             });
         } else {
@@ -86,11 +87,10 @@ socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
         div.className = 'system-msg';
-        div.style.color = data.color;
+        div.style.color = data.color || '#fff';
         div.style.textAlign = 'center';
-        div.style.margin = '10px 0';
-        div.style.fontWeight = 'bold';
-        div.innerText = data.content;
+        div.style.margin = '15px 0';
+        div.innerHTML = `<em>${data.content}</em>`;
     } else {
         div.classList.add('msg');
         div.id = data.id;
@@ -108,9 +108,8 @@ socket.on('message', (data) => {
         }
 
         const replyHTML = data.replyTo ? `
-            <div class="msg-reply-info" style="background:rgba(255,255,255,0.05); border-left:3px solid var(--accent); padding:5px 10px; margin-bottom:8px; border-radius:5px; font-size:0.75rem">
-                <small>Repondendo a <strong>${data.replyTo.name}</strong></small>
-                <p style="margin:0; opacity:0.6">${data.replyTo.text}...</p>
+            <div class="msg-reply-info" style="background:rgba(255,255,255,0.05); border-left:3px solid var(--accent); padding:5px; margin-bottom:8px; border-radius:4px; font-size:0.7rem">
+                <strong>${data.replyTo.name}:</strong> ${data.replyTo.text}...
             </div>
         ` : '';
 
@@ -123,9 +122,9 @@ socket.on('message', (data) => {
             <div class="msg-content">
                 ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${contentWithMentions}</span>`}
             </div>
-            <div id="reac-${data.id}" class="reaction-container" style="display:flex; gap:5px; margin-top:5px;"></div>
+            <div id="reac-${data.id}" class="reaction-container" style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;"></div>
             <div class="reaction-bar">
-                <button onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')"><i class="fa-solid fa-reply" style="color:var(--accent)"></i></button>
+                <button onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')"><i class="fa-solid fa-reply"></i></button>
                 <button onclick="react('${data.id}', '❤️')">❤️</button>
                 <button onclick="react('${data.id}', '🔥')">🔥</button>
                 <button onclick="react('${data.id}', '😂')">😂</button>
@@ -137,7 +136,7 @@ socket.on('message', (data) => {
     typingIndicator.innerText = '';
 });
 
-// NOVO: REAÇÕES COM CONTADOR ACUMULATIVO
+// REAÇÕES (CORREÇÃO DO CONTADOR)
 function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
 
 socket.on('reaction', (data) => {
@@ -149,14 +148,16 @@ socket.on('reaction', (data) => {
             span.className = 'emoji-badge';
             span.setAttribute('data-emoji', data.emoji);
             span.setAttribute('data-count', '1');
+            span.style.background = 'rgba(255,255,255,0.1)';
+            span.style.padding = '2px 6px';
+            span.style.borderRadius = '10px';
+            span.style.fontSize = '0.8rem';
             span.innerHTML = `${data.emoji} <small>1</small>`;
             reacDiv.appendChild(span);
         } else {
             let count = parseInt(existing.getAttribute('data-count')) + 1;
             existing.setAttribute('data-count', count);
-            existing.innerHTML = `${data.emoji} <small>${count}</small>`;
-            existing.style.transform = "scale(1.2)";
-            setTimeout(() => existing.style.transform = "scale(1)", 200);
+            existing.querySelector('small').innerText = count;
         }
     }
 });
@@ -175,7 +176,7 @@ socket.on('updateUserList', (users) => {
     }
 });
 
-// IMAGENS, PERFIL E TEMAS (MANTIDOS)
+// PERFIL, IMAGEM E TEMA (MANTIDOS)
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
