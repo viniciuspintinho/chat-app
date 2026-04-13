@@ -4,14 +4,45 @@ const chat = document.getElementById('chat');
 const messageInput = document.getElementById('message');
 const typingIndicator = document.getElementById('typing-indicator');
 
+// --- CORREÇÃO DE LAYOUT DEFINITIVA (ADICIONE ESTE BLOCO AQUI) ---
+const styleFix = document.createElement('style');
+styleFix.innerHTML = `
+    /* Garante que o corpo da página não role, apenas o chat */
+    body, html { height: 100%; margin: 0; overflow: hidden; }
+    
+    /* O container principal deve ocupar a tela toda e ser um flexbox */
+    #main-content { 
+        display: flex; 
+        flex-direction: column; 
+        height: 100vh; 
+        width: 100%;
+    }
+
+    /* O chat-container ocupa o espaço que sobrar e cria o scroll */
+    #chat-container { 
+        flex: 1; 
+        overflow-y: auto; 
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* A barra de input fica presa embaixo e nunca diminui */
+    .chat-input-area, .input-area, #message-form { 
+        flex-shrink: 0; 
+    }
+`;
+document.head.appendChild(styleFix);
+// -------------------------------------------------------------
+
 let typingTimeout;
 let selectedReply = null;
 let onlineUsers = [];
 
-// --- SISTEMA DE MOEDAS E LOJA (ADICIONADO) ---
+// --- SISTEMA DE MOEDAS E LOJA ---
 let fofoCoins = parseInt(localStorage.getItem('fofoCoins')) || 0;
 let userTags = JSON.parse(localStorage.getItem('userTags')) || [];
-let hasGlow = localStorage.getItem('hasGlow') === 'true'; // Novo item
+let hasGlow = localStorage.getItem('hasGlow') === 'true';
 
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
@@ -21,7 +52,7 @@ const userData = {
     photo: localStorage.getItem('userphoto'),
     color: savedThemeColor,
     tags: userTags,
-    glow: hasGlow // Adicionado ao objeto do usuário
+    glow: hasGlow
 };
 
 if (!userData.name) window.location.href = 'index.html';
@@ -30,7 +61,12 @@ document.getElementById('edit-username').value = userData.name;
 const avatar = document.getElementById('current-user-avatar');
 avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name}&background=ff4bb4&color=fff`;
 
-// --- INTERFACE DA LOJA (ADICIONADO) ---
+// --- CORREÇÃO DE LAYOUT (IMPEDE SUMIR BARRA) ---
+function fixLayout() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// --- INTERFACE DA LOJA ---
 function setupShopUI() {
     const profileArea = document.querySelector('.user-profile-info') || avatar.parentElement;
     if (profileArea && !document.getElementById('shop-btn')) {
@@ -56,15 +92,15 @@ function toggleShop() {
     if (shop) { shop.remove(); return; }
     shop = document.createElement('div');
     shop.id = 'shop-modal';
-    shop.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:2px solid var(--accent); padding:20px; border-radius:15px; z-index:2000; width:280px; box-shadow:0 0 20px rgba(0,0,0,0.5); color:white;";
+    shop.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:2px solid var(--accent); padding:20px; border-radius:15px; z-index:2000; width:280px; box-shadow:0 0 20px rgba(0,0,0,0.5); color:white; max-height: 80vh; overflow-y: auto;";
     shop.innerHTML = `
         <h3 style="color:var(--accent); margin-top:0; text-align:center">🛍️ Loja Fofa</h3>
         <p style="font-size:0.8rem; text-align:center">Seu saldo: 🪙 ${fofoCoins}</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 1000)</button>
+            <button onclick="buyItem('Tag VIP', 1000)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 1000)</button>
             <button onclick="buyItem('Moldura', 800)" style="background:rgba(255,255,255,0.1); color:#00d2ff; border:1px solid #00d2ff; padding:8px; border-radius:5px; cursor:pointer">🌈 Moldura Brilhante (🪙 800)</button>
-            <button onclick="buyItem('Cor vermleha', 300)" style="background:rgba(255,255,255,0.1); color:#ff0000; border:1px solid #ff00000; padding:8px; border-radius:5px; cursor:pointer">🔴 Nome Vermelho (🪙 100)</button>
-            <button onclick="buyItem('Cor branco', 300)" style="background:rgba(255,255,255,0.1); color:#ffff; border:1px solid #ffff; padding:8px; border-radius:5px; cursor:pointer">⚪ Nome branco (🪙 100)</button>
+            <button onclick="buyItem('Cor Vermelha', 100)" style="background:rgba(255,255,255,0.1); color:#ff0000; border:1px solid #ff0000; padding:8px; border-radius:5px; cursor:pointer">🔴 Nome Vermelho (🪙 100)</button>
+            <button onclick="buyItem('Cor Branca', 100)" style="background:rgba(255,255,255,0.1); color:#ffffff; border:1px solid #ffffff; padding:8px; border-radius:5px; cursor:pointer">⚪ Nome Branco (🪙 100)</button>
         </div>
         <button onclick="toggleShop()" style="margin-top:15px; width:100%; background:var(--accent); border:none; color:white; padding:5px; border-radius:5px; cursor:pointer">Fechar</button>
     `;
@@ -79,8 +115,10 @@ function buyItem(item, price) {
             localStorage.setItem('userTags', JSON.stringify(userTags));
         } else if (item === 'Moldura') {
             localStorage.setItem('hasGlow', 'true');
-        } else if (item === 'Cor Azul') {
-            localStorage.setItem('themeAccent', '#3498db');
+        } else if (item === 'Cor Vermelha') {
+            localStorage.setItem('themeAccent', '#ff0000');
+        } else if (item === 'Cor Branca') {
+            localStorage.setItem('themeAccent', '#ffffff');
         }
         alert(`Sucesso! Você adquiriu: ${item}. Reiniciando...`);
         location.reload();
@@ -91,7 +129,6 @@ function buyItem(item, price) {
 
 socket.emit('join', userData);
 
-// IDEIA 2: CRIAR O LETREIRO DE ANÚNCIOS (MARQUEE) AUTOMATICAMENTE
 function updateMarquee(text) {
     let marquee = document.getElementById('chat-announcement');
     if (!marquee) {
@@ -104,12 +141,11 @@ function updateMarquee(text) {
 }
 updateMarquee(`💕 Bem-vindos ao Chat dos Fofo! Use /casar para encontrar seu par! 💕`);
 
-// ENVIO DE MENSAGEM COM NOVOS COMANDOS
 function sendMessage() {
     let text = messageInput.value.trim();
     if (text) {
         const isAdm = userData.name.toLowerCase().includes('(adm)');
-        updateCoins(2); // Ganha moedas ao falar
+        updateCoins(2);
 
         if (text.startsWith('/love ')) {
             const target = text.replace('/love ', '').trim();
@@ -156,16 +192,17 @@ function sendMessage() {
                 type: 'text', 
                 content: text, 
                 replyTo: selectedReply, 
-                tags: userData.tags, // Envia as tags equipadas
-                glow: userData.glow  // Envia se tem moldura
+                tags: userData.tags, 
+                glow: userData.glow,
+                color: userData.color
             });
         }
         messageInput.value = '';
         cancelReply();
+        fixLayout();
     }
 }
 
-// RESTANTE DO CÓDIGO MANTIDO
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
     let replyPreview = document.getElementById('reply-preview');
@@ -219,7 +256,7 @@ socket.on('message', (data) => {
         const isVip = data.tags && data.tags.includes('VIP'); 
         
         if (isAdm) div.classList.add('adm-msg');
-        if (data.glow) div.style.boxShadow = "0 0 15px var(--accent)"; // Estilo da moldura
+        if (data.glow) div.style.boxShadow = `0 0 15px ${data.color || 'var(--accent)'}`; 
         
         let contentWithMentions = data.content;
         if (data.type === 'text') {
@@ -251,7 +288,7 @@ socket.on('message', (data) => {
         `;
     }
     chat.appendChild(div);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    fixLayout();
 });
 
 function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
@@ -298,10 +335,8 @@ socket.on('updateUserList', (users) => {
     }
 });
 
-// INICIALIZAÇÃO DA LOJA
 setupShopUI();
 
-// FUNÇÕES DE PERFIL E TEMA MANTIDAS
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
@@ -335,10 +370,13 @@ function updateProfilePhoto(input) {
     }
 }
 function changeThemeColor(color, dotElement) {
+
     userData.color = color;
     localStorage.setItem('themeAccent', color);
+    
     document.documentElement.style.setProperty('--accent', color);
     socket.emit('updateProfile', { color: color });
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
     if(dotElement) dotElement.classList.add('active');
+
 }
