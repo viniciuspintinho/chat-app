@@ -52,18 +52,34 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// ENVIO DE MENSAGEM (CORREÇÃO DO /LOVE)
+// ENVIO DE MENSAGEM COM NOVOS COMANDOS
 function sendMessage() {
     let text = messageInput.value.trim();
     if (text) {
+        const isAdm = userData.name.toLowerCase().includes('(adm)');
+
         if (text.startsWith('/love ')) {
             const target = text.replace('/love ', '').trim();
-            socket.emit('message', { 
-                type: 'system', 
-                content: `💖 ${userData.name} espalhou amor para ${target}!`, 
-                color: '#ff4bb4' 
-            });
-        } else {
+            socket.emit('message', { type: 'system', content: `💖 ${userData.name} espalhou amor para ${target}!`, color: '#ff4bb4' });
+        } 
+        // NOVO COMANDO: BATER
+        else if (text.startsWith('/bater ')) {
+            const target = text.replace('/bater ', '').trim();
+            socket.emit('message', { type: 'system', content: `👊 ${userData.name} deu um cascudo em ${target}!`, color: '#e74c3c' });
+        }
+        else if (text === '/moeda') {
+            const resultado = Math.random() < 0.5 ? 'CARA' : 'COROA';
+            socket.emit('message', { type: 'system', content: `🪙 ${userData.name} jogou a moeda e deu... ${resultado}!`, color: '#f1c40f' });
+        }
+        else if (text.startsWith('/aviso ') && isAdm) {
+            const aviso = text.replace('/aviso ', '').trim();
+            socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
+        }
+        else if (text === '/dado') {
+            const valor = Math.floor(Math.random() * 6) + 1;
+            socket.emit('message', { type: 'system', content: `🎲 ${userData.name} girou o dado e tirou... ${valor}!`, color: '#9b59b6' });
+        }
+        else {
             socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
         }
         messageInput.value = '';
@@ -87,10 +103,11 @@ socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
         div.className = 'system-msg';
+        if (data.isUrgent) div.classList.add('urgent-blink');
         div.style.color = data.color || '#fff';
         div.style.textAlign = 'center';
         div.style.margin = '15px 0';
-        div.innerHTML = `<em>${data.content}</em>`;
+        div.innerHTML = `<strong>${data.content}</strong>`;
     } else {
         div.classList.add('msg');
         div.id = data.id;
@@ -136,7 +153,7 @@ socket.on('message', (data) => {
     typingIndicator.innerText = '';
 });
 
-// REAÇÕES (CORREÇÃO DO CONTADOR)
+// REAÇÕES ACUMULATIVAS
 function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
 
 socket.on('reaction', (data) => {
@@ -176,7 +193,7 @@ socket.on('updateUserList', (users) => {
     }
 });
 
-// PERFIL, IMAGEM E TEMA (MANTIDOS)
+// FUNÇÕES DE PERFIL E IMAGEM (MANTIDAS)
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
