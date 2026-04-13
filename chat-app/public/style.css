@@ -253,6 +253,39 @@ header span {
     margin-bottom: 5px;
     transition: opacity 0.3s;
 }
+/* Estilo do painel de resposta que aparece acima do input */
+#reply-preview {
+    background: var(--side);
+    border-left: 4px solid var(--accent);
+    margin: 0 40px;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 10px 10px 0 0;
+    border-top: 1px solid var(--border);
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Ajuste na barra de reações para caber o novo ícone */
+.reaction-bar {
+    gap: 8px !important;
+    padding: 5px 12px !important;
+}
+
+.reaction-bar button i {
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+
+.reaction-bar button:hover i {
+    transform: scale(1.2);
+}
 
 .chat-img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
 

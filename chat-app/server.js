@@ -34,7 +34,8 @@ io.on('connection', (socket) => {
                 photo: user.photo,
                 color: user.color,
                 type: data.type,
-                content: data.content
+                content: data.content,
+                replyTo: data.replyTo || null // NOVO: Suporte a resposta
             });
         }
     });
@@ -43,7 +44,6 @@ io.on('connection', (socket) => {
         io.emit('reaction', data);
     });
 
-    // EVENTO DE DIGITANDO
     socket.on('typing', (data) => {
         socket.broadcast.emit('typing', data);
     });
