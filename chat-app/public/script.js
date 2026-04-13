@@ -11,7 +11,7 @@ let onlineUsers = [];
 // --- SISTEMA DE MOEDAS E LOJA (ADICIONADO) ---
 let fofoCoins = parseInt(localStorage.getItem('fofoCoins')) || 0;
 let userTags = JSON.parse(localStorage.getItem('userTags')) || [];
-let hasGlow = localStorage.getItem('hasGlow') === 'true'; // Novo item
+let hasGlow = localStorage.getItem('hasGlow') === 'true'; 
 
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
@@ -21,7 +21,7 @@ const userData = {
     photo: localStorage.getItem('userphoto'),
     color: savedThemeColor,
     tags: userTags,
-    glow: hasGlow // Adicionado ao objeto do usuário
+    glow: hasGlow 
 };
 
 if (!userData.name) window.location.href = 'index.html';
@@ -30,7 +30,7 @@ document.getElementById('edit-username').value = userData.name;
 const avatar = document.getElementById('current-user-avatar');
 avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name}&background=ff4bb4&color=fff`;
 
-// --- INTERFACE DA LOJA (ADICIONADO) ---
+// --- INTERFACE DA LOJA ---
 function setupShopUI() {
     const profileArea = document.querySelector('.user-profile-info') || avatar.parentElement;
     if (profileArea && !document.getElementById('shop-btn')) {
@@ -61,10 +61,9 @@ function toggleShop() {
         <h3 style="color:var(--accent); margin-top:0; text-align:center">🛍️ Loja Fofa</h3>
         <p style="font-size:0.8rem; text-align:center">Seu saldo: 🪙 ${fofoCoins}</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 1000)</button>
+            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 500)</button>
             <button onclick="buyItem('Moldura', 800)" style="background:rgba(255,255,255,0.1); color:#00d2ff; border:1px solid #00d2ff; padding:8px; border-radius:5px; cursor:pointer">🌈 Moldura Brilhante (🪙 800)</button>
-            <button onclick="buyItem('Cor vermleha', 300)" style="background:rgba(255,255,255,0.1); color:#ff0000; border:1px solid #ff00000; padding:8px; border-radius:5px; cursor:pointer">🔴 Nome Vermelho (🪙 100)</button>
-            <button onclick="buyItem('Cor branco', 300)" style="background:rgba(255,255,255,0.1); color:#ffff; border:1px solid #ffff; padding:8px; border-radius:5px; cursor:pointer">⚪ Nome branco (🪙 100)</button>
+            <button onclick="buyItem('Cor Azul', 300)" style="background:rgba(255,255,255,0.1); color:#3498db; border:1px solid #3498db; padding:8px; border-radius:5px; cursor:pointer">🔵 Nome Azul (🪙 300)</button>
         </div>
         <button onclick="toggleShop()" style="margin-top:15px; width:100%; background:var(--accent); border:none; color:white; padding:5px; border-radius:5px; cursor:pointer">Fechar</button>
     `;
@@ -91,7 +90,6 @@ function buyItem(item, price) {
 
 socket.emit('join', userData);
 
-// IDEIA 2: CRIAR O LETREIRO DE ANÚNCIOS (MARQUEE) AUTOMATICAMENTE
 function updateMarquee(text) {
     let marquee = document.getElementById('chat-announcement');
     if (!marquee) {
@@ -109,9 +107,16 @@ function sendMessage() {
     let text = messageInput.value.trim();
     if (text) {
         const isAdm = userData.name.toLowerCase().includes('(adm)');
-        updateCoins(2); // Ganha moedas ao falar
-
-        if (text.startsWith('/love ')) {
+        
+        // COMANDO EXCLUSIVO ADM PARA GANHAR MOEDAS
+        if (text.startsWith('/resgatar ') && isAdm) {
+            const valor = parseInt(text.replace('/resgatar ', '').trim());
+            if (!isNaN(valor)) {
+                updateCoins(valor);
+                socket.emit('message', { type: 'system', content: `👑 ${userData.name} resgatou ${valor} moedas!`, color: '#f1c40f' });
+            }
+        }
+        else if (text.startsWith('/love ')) {
             const target = text.replace('/love ', '').trim();
             socket.emit('message', { type: 'system', content: `💖 ${userData.name} espalhou amor para ${target}!`, color: '#ff4bb4' });
         } 
@@ -152,12 +157,13 @@ function sendMessage() {
             socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
         }
         else {
+            updateCoins(2); // Ganha moedas normal enviando mensagens
             socket.emit('message', { 
                 type: 'text', 
                 content: text, 
                 replyTo: selectedReply, 
-                tags: userData.tags, // Envia as tags equipadas
-                glow: userData.glow  // Envia se tem moldura
+                tags: userData.tags, 
+                glow: userData.glow 
             });
         }
         messageInput.value = '';
@@ -165,7 +171,7 @@ function sendMessage() {
     }
 }
 
-// RESTANTE DO CÓDIGO MANTIDO
+// RESTANTE DO CÓDIGO (REAÇÕES, LISTA DE USUÁRIOS, ETC) MANTIDO IGUAL
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
     let replyPreview = document.getElementById('reply-preview');
@@ -219,7 +225,7 @@ socket.on('message', (data) => {
         const isVip = data.tags && data.tags.includes('VIP'); 
         
         if (isAdm) div.classList.add('adm-msg');
-        if (data.glow) div.style.boxShadow = "0 0 15px var(--accent)"; // Estilo da moldura
+        if (data.glow) div.style.boxShadow = "0 0 15px var(--accent)"; 
         
         let contentWithMentions = data.content;
         if (data.type === 'text') {
@@ -298,10 +304,8 @@ socket.on('updateUserList', (users) => {
     }
 });
 
-// INICIALIZAÇÃO DA LOJA
 setupShopUI();
 
-// FUNÇÕES DE PERFIL E TEMA MANTIDAS
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
@@ -313,6 +317,7 @@ function sendImage(input) {
         reader.readAsDataURL(file);
     }
 }
+
 function updateProfileName() {
     const newName = document.getElementById('edit-username').value.trim();
     if (newName && newName !== userData.name) {
@@ -321,6 +326,7 @@ function updateProfileName() {
         socket.emit('updateProfile', { name: newName });
     }
 }
+
 function updateProfilePhoto(input) {
     const file = input.files[0];
     if (file) {
@@ -334,6 +340,7 @@ function updateProfilePhoto(input) {
         reader.readAsDataURL(file);
     }
 }
+
 function changeThemeColor(color, dotElement) {
     userData.color = color;
     localStorage.setItem('themeAccent', color);
