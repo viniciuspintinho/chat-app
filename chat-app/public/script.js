@@ -2,6 +2,9 @@ const socket = io();
 const chatContainer = document.getElementById('chat-container');
 const chat = document.getElementById('chat');
 const messageInput = document.getElementById('message');
+const typingIndicator = document.getElementById('typing-indicator');
+
+let typingTimeout;
 
 // Carregar dados do localStorage
 const userData = {
@@ -23,10 +26,24 @@ function sendMessage() {
     }
 }
 
+// Controla teclas e aviso de Digitando
 function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
-    socket.emit('typing', { name: userData.name });
+    if (e.key === 'Enter') {
+        sendMessage();
+    } else {
+        socket.emit('typing', { name: userData.name });
+    }
 }
+
+// Escuta evento de digitação de outros usuários
+socket.on('typing', (data) => {
+    typingIndicator.innerText = `${data.name} está digitando...`;
+    
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        typingIndicator.innerText = '';
+    }, 2000); // Some após 2 segundos sem digitar
+});
 
 // Enviar Imagem
 function sendImage(input) {
@@ -40,11 +57,12 @@ function sendImage(input) {
     }
 }
 
-// Reações
+// Enviar Reação ao Servidor
 function react(msgId, emoji) {
     socket.emit('reaction', { msgId, emoji });
 }
 
+// Receber Mensagens
 socket.on('message', (data) => {
     const div = document.createElement('div');
     
@@ -53,9 +71,8 @@ socket.on('message', (data) => {
         div.style.color = data.color;
         div.innerText = data.content;
     } else {
-        const msgId = 'm-' + Math.random().toString(36).substr(2, 9);
         div.classList.add('msg');
-        div.id = msgId;
+        div.id = data.id; // ID sincronizado vindo do servidor
         
         div.innerHTML = `
             <div class="msg-header" style="color:${data.color}">
@@ -65,18 +82,20 @@ socket.on('message', (data) => {
             <div class="msg-content">
                 ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${data.content}</span>`}
             </div>
-            <div id="reac-${msgId}" class="reaction-container"></div>
+            <div id="reac-${data.id}" class="reaction-container"></div>
             <div class="reaction-bar">
-                <button onclick="react('${msgId}', '❤️')">❤️</button>
-                <button onclick="react('${msgId}', '🔥')">🔥</button>
-                <button onclick="react('${msgId}', '😂')">😂</button>
+                <button onclick="react('${data.id}', '❤️')">❤️</button>
+                <button onclick="react('${data.id}', '🔥')">🔥</button>
+                <button onclick="react('${data.id}', '😂')">😂</button>
             </div>
         `;
     }
     chat.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
+    typingIndicator.innerText = ''; // Limpa o "digitando" quando a mensagem chega
 });
 
+// Receber Reações de qualquer usuário
 socket.on('reaction', (data) => {
     const reacDiv = document.getElementById(`reac-${data.msgId}`);
     if (reacDiv) {
@@ -87,19 +106,22 @@ socket.on('reaction', (data) => {
             span.innerText = data.emoji;
             reacDiv.appendChild(span);
         } else {
-            existing.style.transform = "scale(1.3)";
+            // Efeito visual de clique se já existir
+            existing.style.transform = "scale(1.4)";
             setTimeout(() => existing.style.transform = "scale(1)", 200);
         }
     }
 });
 
+// Atualizar Lista de Usuários Online
 socket.on('updateUserList', (users) => {
     const list = document.getElementById('user-list');
-    list.innerHTML = users.map(u => `
-        <div class="user-item">
-            <img src="${u.photo}" class="user-avatar">
-            <span>${u.name}</span>
-            <div class="online-status"></div>
-        </div>
-    `).join('');
+    if(list) {
+        list.innerHTML = users.map(u => `
+            <div class="user-item">
+                <img src="${u.photo}" class="user-avatar">
+                <span>${u.name}</span>
+            </div>
+        `).join('');
+    }
 });

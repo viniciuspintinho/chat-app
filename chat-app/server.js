@@ -4,7 +4,7 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, { maxHttpBufferSize: 1e7 }); // Permite fotos maiores
+const io = socketIo(server, { maxHttpBufferSize: 1e7 }); // Permite fotos e arquivos maiores
 
 app.use(express.static('public'));
 
@@ -24,14 +24,16 @@ io.on('connection', (socket) => {
             content: `✨ ${users[socket.id].name} entrou no chat!`,
             color: '#28a745'
         });
+
         io.emit('updateUserList', Object.values(users));
     });
 
-    // Enviar Mensagem
+    // Enviar Mensagem (Gera ID único para sincronizar reações)
     socket.on('message', (data) => {
         const user = users[socket.id];
         if (user) {
             io.emit('message', {
+                id: 'msg-' + Date.now() + Math.random().toString(36).substr(2, 4),
                 user: user.name,
                 photo: user.photo,
                 color: user.color,
@@ -41,12 +43,12 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Reações
+    // Reações (Envia para todos os usuários)
     socket.on('reaction', (data) => {
         io.emit('reaction', data);
     });
 
-    // Digitando
+    // Digitando (Broadcast: envia para todos exceto para quem está digitando)
     socket.on('typing', (data) => {
         socket.broadcast.emit('typing', data);
     });
