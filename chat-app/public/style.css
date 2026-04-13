@@ -22,15 +22,15 @@ body {
     height: 100dvh; 
     width: 100vw;
     display: flex;
-    overflow: hidden;
+    overflow: hidden; /* Impede a rolagem da página inteira */
 }
 
 #chat-app {
     display: grid;
-    /* Alterado para manter a coluna da sidebar fixa */
-    grid-template-columns: minmax(280px, 280px) 1fr;
+    grid-template-columns: 280px 1fr;
     width: 100vw;
     height: 100dvh; 
+    overflow: hidden; /* Mantém tudo preso dentro da tela */
 }
 
 /* Sidebar */
@@ -42,9 +42,7 @@ body {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
-    /* Adicionado para garantir que não encolha */
-    width: 280px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Impede que a sidebar diminua ou suma */
 }
 
 header span { 
@@ -75,10 +73,9 @@ header span {
 #main-content {
     display: flex; 
     flex-direction: column;
-    height: 100%;
-    /* Adicionado para evitar que o conteúdo empurre a sidebar */
-    min-width: 0;
+    height: 100dvh; /* Força o conteúdo principal a respeitar a altura da tela */
     background: radial-gradient(circle at top right, rgba(255, 75, 180, 0.07), transparent);
+    overflow: hidden;
 }
 
 #chat-container { 
@@ -154,16 +151,15 @@ header span {
     bottom: -15px; 
 }
 
-/* Área de Input */
+/* Área de Input corrigida */
 #inputArea {
     padding: 20px 40px 35px 40px; 
     background: var(--side);
     display: flex; 
     gap: 15px; 
-    align-items: center;
+    align-items: flex-end; /* Alinha os ícones ao fundo se o texto crescer */
     border-top: 1px solid var(--border);
-    /* Adicionado para manter estabilidade */
-    flex-shrink: 0;
+    flex-shrink: 0; /* Garante que a barra de baixo nunca suma */
 }
 
 #message {
@@ -171,9 +167,11 @@ header span {
     background: var(--bg); 
     border: 1px solid var(--border);
     padding: 14px 20px; 
-    border-radius: 30px; 
+    border-radius: 20px; 
     color: white; 
     outline: none;
+    max-height: 150px; /* Limita o crescimento para não expulsar a sidebar */
+    overflow-y: auto;  /* Se o texto for gigante, ele rola aqui dentro */
 }
 
 #message:focus {
@@ -186,6 +184,7 @@ header span {
     color: var(--accent); 
     font-size: 1.5rem; 
     cursor: pointer; 
+    margin-bottom: 5px;
 }
 
 .btn-send-main {
