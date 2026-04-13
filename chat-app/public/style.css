@@ -19,7 +19,6 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: 'Plus Jakarta Sans', sans-serif;
-    /* Ajuste para não esconder atrás da barra de tarefas */
     height: 100dvh; 
     width: 100vw;
     display: flex;
@@ -28,9 +27,9 @@ body {
 
 #chat-app {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    /* Alterado para manter a coluna da sidebar fixa */
+    grid-template-columns: minmax(280px, 280px) 1fr;
     width: 100vw;
-    /* Força o app a ocupar apenas o espaço visível */
     height: 100dvh; 
 }
 
@@ -43,6 +42,9 @@ body {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
+    /* Adicionado para garantir que não encolha */
+    width: 280px;
+    flex-shrink: 0;
 }
 
 header span { 
@@ -74,6 +76,8 @@ header span {
     display: flex; 
     flex-direction: column;
     height: 100%;
+    /* Adicionado para evitar que o conteúdo empurre a sidebar */
+    min-width: 0;
     background: radial-gradient(circle at top right, rgba(255, 75, 180, 0.07), transparent);
 }
 
@@ -150,15 +154,16 @@ header span {
     bottom: -15px; 
 }
 
-/* Área de Input corrigida */
+/* Área de Input */
 #inputArea {
-    /* Adicionado padding extra no fundo (35px) para fugir da barra de tarefas */
     padding: 20px 40px 35px 40px; 
     background: var(--side);
     display: flex; 
     gap: 15px; 
     align-items: center;
     border-top: 1px solid var(--border);
+    /* Adicionado para manter estabilidade */
+    flex-shrink: 0;
 }
 
 #message {
