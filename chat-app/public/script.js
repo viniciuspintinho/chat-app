@@ -6,7 +6,7 @@ const typingIndicator = document.getElementById('typing-indicator');
 
 let typingTimeout;
 let selectedReply = null;
-let onlineUsers = []; // NOVO: Lista para validar menções reais
+let onlineUsers = [];
 
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
@@ -25,7 +25,7 @@ avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name
 
 socket.emit('join', userData);
 
-// RESPOSTA
+// SISTEMA DE RESPOSTA
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
     let replyPreview = document.getElementById('reply-preview');
@@ -39,7 +39,7 @@ function setReply(msgId, userName, text) {
             <small style="color:var(--accent)">Respondendo a <strong>${userName}</strong></small>
             <p style="margin:0; opacity:0.8; font-size:0.8rem">${text}</p>
         </div>
-        <button onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
     `;
     messageInput.focus();
 }
@@ -50,11 +50,21 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// MENSAGENS
+// ENVIO DE MENSAGEM COM COMANDO /LOVE
 function sendMessage() {
-    const text = messageInput.value.trim();
+    let text = messageInput.value.trim();
     if (text) {
-        socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
+        // NOVO: Comando /love @nome
+        if (text.startsWith('/love ')) {
+            const target = text.replace('/love ', '').trim();
+            socket.emit('message', { 
+                type: 'system', 
+                content: `💖 ${userData.name} espalhou muito amor para ${target}!`, 
+                color: '#ff4bb4' 
+            });
+        } else {
+            socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
+        }
         messageInput.value = '';
         cancelReply();
     }
@@ -71,12 +81,15 @@ socket.on('typing', (data) => {
     typingTimeout = setTimeout(() => { typingIndicator.innerText = ''; }, 2000);
 });
 
-// RECEBER MENSAGENS COM FILTRO DE MENÇÃO REAL
+// RECEBER MENSAGENS
 socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
         div.className = 'system-msg';
         div.style.color = data.color;
+        div.style.textAlign = 'center';
+        div.style.margin = '10px 0';
+        div.style.fontWeight = 'bold';
         div.innerText = data.content;
     } else {
         div.classList.add('msg');
@@ -85,21 +98,13 @@ socket.on('message', (data) => {
         const isAdm = data.user.toLowerCase().includes('(adm)');
         if (isAdm) div.classList.add('adm-msg');
 
-        // LÓGICA DE MENÇÃO APENAS PARA USUÁRIOS REAIS
         let contentWithMentions = data.content;
         if (data.type === 'text') {
-            // Regex que procura por @ seguido de qualquer palavra
             contentWithMentions = data.content.replace(/@(\S+)/g, (match, username) => {
-                // Verifica se o username (sem o @) está na lista de onlineUsers
-                if (onlineUsers.includes(username)) {
-                    return `<span class="mention">@${username}</span>`;
-                }
-                return match; // Se não for usuário, retorna o texto normal
+                if (onlineUsers.includes(username)) return `<span class="mention">@${username}</span>`;
+                return match;
             });
-            
-            if (data.content.includes(`@${userData.name}`)) {
-                div.classList.add('mentioned-msg');
-            }
+            if (data.content.includes(`@${userData.name}`)) div.classList.add('mentioned-msg');
         }
 
         const replyHTML = data.replyTo ? `
@@ -118,7 +123,7 @@ socket.on('message', (data) => {
             <div class="msg-content">
                 ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${contentWithMentions}</span>`}
             </div>
-            <div id="reac-${data.id}" class="reaction-container"></div>
+            <div id="reac-${data.id}" class="reaction-container" style="display:flex; gap:5px; margin-top:5px;"></div>
             <div class="reaction-bar">
                 <button onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')"><i class="fa-solid fa-reply" style="color:var(--accent)"></i></button>
                 <button onclick="react('${data.id}', '❤️')">❤️</button>
@@ -132,11 +137,33 @@ socket.on('message', (data) => {
     typingIndicator.innerText = '';
 });
 
-// ATUALIZAR LISTA E VALIDAR USUÁRIOS ONLINE
-socket.on('updateUserList', (users) => {
-    // Guarda apenas os nomes para a validação da menção
-    onlineUsers = users.map(u => u.name);
+// NOVO: REAÇÕES COM CONTADOR ACUMULATIVO
+function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
 
+socket.on('reaction', (data) => {
+    const reacDiv = document.getElementById(`reac-${data.msgId}`);
+    if (reacDiv) {
+        let existing = Array.from(reacDiv.children).find(s => s.getAttribute('data-emoji') === data.emoji);
+        if (!existing) {
+            const span = document.createElement('span');
+            span.className = 'emoji-badge';
+            span.setAttribute('data-emoji', data.emoji);
+            span.setAttribute('data-count', '1');
+            span.innerHTML = `${data.emoji} <small>1</small>`;
+            reacDiv.appendChild(span);
+        } else {
+            let count = parseInt(existing.getAttribute('data-count')) + 1;
+            existing.setAttribute('data-count', count);
+            existing.innerHTML = `${data.emoji} <small>${count}</small>`;
+            existing.style.transform = "scale(1.2)";
+            setTimeout(() => existing.style.transform = "scale(1)", 200);
+        }
+    }
+});
+
+// LISTA DE USUÁRIOS
+socket.on('updateUserList', (users) => {
+    onlineUsers = users.map(u => u.name);
     const list = document.getElementById('user-list');
     if(list) {
         list.innerHTML = users.map(u => `
@@ -148,7 +175,7 @@ socket.on('updateUserList', (users) => {
     }
 });
 
-// REAÇÕES E IMAGEM
+// IMAGENS, PERFIL E TEMAS (MANTIDOS)
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
@@ -160,21 +187,6 @@ function sendImage(input) {
         reader.readAsDataURL(file);
     }
 }
-function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
-socket.on('reaction', (data) => {
-    const reacDiv = document.getElementById(`reac-${data.msgId}`);
-    if (reacDiv) {
-        let existing = Array.from(reacDiv.children).find(s => s.innerText.includes(data.emoji));
-        if (!existing) {
-            const span = document.createElement('span');
-            span.className = 'emoji-badge';
-            span.innerText = data.emoji;
-            reacDiv.appendChild(span);
-        }
-    }
-});
-
-// PERFIL E TEMA
 function updateProfileName() {
     const newName = document.getElementById('edit-username').value.trim();
     if (newName && newName !== userData.name) {
