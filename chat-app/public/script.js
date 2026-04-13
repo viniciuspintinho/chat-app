@@ -52,7 +52,7 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// ENVIO DE MENSAGEM COM NOVOS COMANDOS
+// ENVIO DE MENSAGEM COM NOVOS COMANDOS (LIMPAR E ENQUETE)
 function sendMessage() {
     let text = messageInput.value.trim();
     if (text) {
@@ -62,7 +62,6 @@ function sendMessage() {
             const target = text.replace('/love ', '').trim();
             socket.emit('message', { type: 'system', content: `💖 ${userData.name} espalhou amor para ${target}!`, color: '#ff4bb4' });
         } 
-        // NOVO COMANDO: BATER
         else if (text.startsWith('/bater ')) {
             const target = text.replace('/bater ', '').trim();
             socket.emit('message', { type: 'system', content: `👊 ${userData.name} deu um cascudo em ${target}!`, color: '#e74c3c' });
@@ -71,13 +70,23 @@ function sendMessage() {
             const resultado = Math.random() < 0.5 ? 'CARA' : 'COROA';
             socket.emit('message', { type: 'system', content: `🪙 ${userData.name} jogou a moeda e deu... ${resultado}!`, color: '#f1c40f' });
         }
-        else if (text.startsWith('/aviso ') && isAdm) {
-            const aviso = text.replace('/aviso ', '').trim();
-            socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
-        }
         else if (text === '/dado') {
             const valor = Math.floor(Math.random() * 6) + 1;
             socket.emit('message', { type: 'system', content: `🎲 ${userData.name} girou o dado e tirou... ${valor}!`, color: '#9b59b6' });
+        }
+        // COMANDO 2: LIMPAR (ADM)
+        else if (text === '/limpar' && isAdm) {
+            chat.innerHTML = '';
+            socket.emit('message', { type: 'system', content: `🧹 O chat foi limpo por ${userData.name}`, color: '#aaa' });
+        }
+        // COMANDO 7: ENQUETE (ADM OU TODOS)
+        else if (text.startsWith('/enquete ')) {
+            const pergunta = text.replace('/enquete ', '').trim();
+            socket.emit('message', { type: 'system', content: `📊 ENQUETE: ${pergunta}\n(Reaja com ❤️ para SIM ou 😂 para NÃO)`, color: '#00d2ff' });
+        }
+        else if (text.startsWith('/aviso ') && isAdm) {
+            const aviso = text.replace('/aviso ', '').trim();
+            socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
         }
         else {
             socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
@@ -107,7 +116,7 @@ socket.on('message', (data) => {
         div.style.color = data.color || '#fff';
         div.style.textAlign = 'center';
         div.style.margin = '15px 0';
-        div.innerHTML = `<strong>${data.content}</strong>`;
+        div.innerHTML = `<strong>${data.content.replace('\n', '<br>')}</strong>`;
     } else {
         div.classList.add('msg');
         div.id = data.id;
@@ -179,21 +188,36 @@ socket.on('reaction', (data) => {
     }
 });
 
-// LISTA DE USUÁRIOS
+// LISTA DE USUÁRIOS (COM CARGO POR COR E CONTADOR)
 socket.on('updateUserList', (users) => {
     onlineUsers = users.map(u => u.name);
+    
+    // COMANDO 6: CONTADOR DE ONLINE
+    const counter = document.getElementById('online-counter');
+    if(counter) counter.innerText = `Online: ${users.length}`;
+
     const list = document.getElementById('user-list');
     if(list) {
-        list.innerHTML = users.map(u => `
-            <div class="user-item" onclick="document.getElementById('message').value += '@${u.name} '">
-                <img src="${u.photo}" class="user-avatar ${u.name.toLowerCase().includes('(adm)') ? 'adm-avatar' : ''}">
-                <span>${u.name}</span>
-            </div>
-        `).join('');
+        list.innerHTML = users.map(u => {
+            const isAdm = u.name.toLowerCase().includes('(adm)');
+            // COMANDO 1: STATUS ESPECIAL ADM
+            const statusColor = isAdm ? 'gold' : '#2ecc71';
+            const statusClass = isAdm ? 'status-adm-glow' : '';
+            
+            return `
+                <div class="user-item" onclick="document.getElementById('message').value += '@${u.name} '">
+                    <div class="avatar-container">
+                        <img src="${u.photo}" class="user-avatar ${isAdm ? 'adm-avatar' : ''}">
+                        <div class="status-dot ${statusClass}" style="background:${statusColor}"></div>
+                    </div>
+                    <span>${u.name}</span>
+                </div>
+            `;
+        }).join('');
     }
 });
 
-// FUNÇÕES DE PERFIL E IMAGEM (MANTIDAS)
+// FUNÇÕES DE PERFIL E IMAGEM
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
