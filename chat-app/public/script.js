@@ -11,6 +11,7 @@ let onlineUsers = [];
 // --- SISTEMA DE MOEDAS E LOJA (ADICIONADO) ---
 let fofoCoins = parseInt(localStorage.getItem('fofoCoins')) || 0;
 let userTags = JSON.parse(localStorage.getItem('userTags')) || [];
+let hasGlow = localStorage.getItem('hasGlow') === 'true'; // Novo item
 
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
@@ -19,7 +20,8 @@ const userData = {
     name: localStorage.getItem('username'),
     photo: localStorage.getItem('userphoto'),
     color: savedThemeColor,
-    tags: userTags // Adicionado suporte a tags
+    tags: userTags,
+    glow: hasGlow // Adicionado ao objeto do usuário
 };
 
 if (!userData.name) window.location.href = 'index.html';
@@ -56,10 +58,12 @@ function toggleShop() {
     shop.id = 'shop-modal';
     shop.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1a1a1a; border:2px solid var(--accent); padding:20px; border-radius:15px; z-index:2000; width:280px; box-shadow:0 0 20px rgba(0,0,0,0.5); color:white;";
     shop.innerHTML = `
-        <h3 style="color:var(--accent); margin-top:0">🛍️ Loja Fofa</h3>
-        <p style="font-size:0.8rem;">Seu saldo: 🪙 ${fofoCoins}</p>
+        <h3 style="color:var(--accent); margin-top:0; text-align:center">🛍️ Loja Fofa</h3>
+        <p style="font-size:0.8rem; text-align:center">Seu saldo: 🪙 ${fofoCoins}</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:white; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">Tag VIP (🪙 500)</button>
+            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 500)</button>
+            <button onclick="buyItem('Moldura', 800)" style="background:rgba(255,255,255,0.1); color:#00d2ff; border:1px solid #00d2ff; padding:8px; border-radius:5px; cursor:pointer">🌈 Moldura Brilhante (🪙 800)</button>
+            <button onclick="buyItem('Cor Azul', 300)" style="background:rgba(255,255,255,0.1); color:#3498db; border:1px solid #3498db; padding:8px; border-radius:5px; cursor:pointer">🔵 Nome Azul (🪙 300)</button>
         </div>
         <button onclick="toggleShop()" style="margin-top:15px; width:100%; background:var(--accent); border:none; color:white; padding:5px; border-radius:5px; cursor:pointer">Fechar</button>
     `;
@@ -70,13 +74,17 @@ function buyItem(item, price) {
     if (fofoCoins >= price) {
         updateCoins(-price);
         if (item === 'Tag VIP') {
-            userTags.push('VIP');
+            if (!userTags.includes('VIP')) userTags.push('VIP');
             localStorage.setItem('userTags', JSON.stringify(userTags));
-            alert("Parabéns! Você agora é VIP!");
+        } else if (item === 'Moldura') {
+            localStorage.setItem('hasGlow', 'true');
+        } else if (item === 'Cor Azul') {
+            localStorage.setItem('themeAccent', '#3498db');
         }
+        alert(`Sucesso! Você adquiriu: ${item}. Reiniciando...`);
         location.reload();
     } else {
-        alert("Moedas insuficientes!");
+        alert("Moedas insuficientes! Continue conversando.");
     }
 }
 
@@ -106,7 +114,6 @@ function sendMessage() {
             const target = text.replace('/love ', '').trim();
             socket.emit('message', { type: 'system', content: `💖 ${userData.name} espalhou amor para ${target}!`, color: '#ff4bb4' });
         } 
-        // COMANDO ABRAÇÃO (ADICIONADO)
         else if (text === '/abracao') {
             socket.emit('message', { type: 'system', content: `🫂 ABRAÇÃO COLETIVO! ${userData.name} abraçou todos do chat!`, color: '#3498db' });
         }
@@ -144,7 +151,13 @@ function sendMessage() {
             socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
         }
         else {
-            socket.emit('message', { type: 'text', content: text, replyTo: selectedReply, tags: userData.tags });
+            socket.emit('message', { 
+                type: 'text', 
+                content: text, 
+                replyTo: selectedReply, 
+                tags: userData.tags, // Envia as tags equipadas
+                glow: userData.glow  // Envia se tem moldura
+            });
         }
         messageInput.value = '';
         cancelReply();
@@ -202,8 +215,10 @@ socket.on('message', (data) => {
         div.classList.add('msg');
         div.id = data.id;
         const isAdm = data.user.toLowerCase().includes('(adm)');
-        const isVip = data.tags && data.tags.includes('VIP'); // Verifica VIP
+        const isVip = data.tags && data.tags.includes('VIP'); 
+        
         if (isAdm) div.classList.add('adm-msg');
+        if (data.glow) div.style.boxShadow = "0 0 15px var(--accent)"; // Estilo da moldura
         
         let contentWithMentions = data.content;
         if (data.type === 'text') {
@@ -220,7 +235,7 @@ socket.on('message', (data) => {
             ${replyHTML}
             <div class="msg-header" style="color:${data.color}">
                 <img src="${data.photo}" class="user-avatar-mini ${isAdm ? 'adm-avatar' : ''}">
-                <strong>${data.user} ${isAdm ? '★ ADM' : ''} ${isVip ? '<span style="color:#f1c40f">[VIP]</span>' : ''}</strong>
+                <strong>${data.user} ${isAdm ? '★ ADM' : ''} ${isVip ? '<span style="color:#f1c40f; text-shadow: 0 0 5px gold;">[VIP]</span>' : ''}</strong>
             </div>
             <div class="msg-content">
                 ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${contentWithMentions}</span>`}
