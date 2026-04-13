@@ -61,9 +61,10 @@ function toggleShop() {
         <h3 style="color:var(--accent); margin-top:0; text-align:center">🛍️ Loja Fofa</h3>
         <p style="font-size:0.8rem; text-align:center">Seu saldo: 🪙 ${fofoCoins}</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 500)</button>
+            <button onclick="buyItem('Tag VIP', 500)" style="background:rgba(255,255,255,0.1); color:#f1c40f; border:1px solid #f1c40f; padding:8px; border-radius:5px; cursor:pointer">✨ Tag VIP (🪙 1000)</button>
             <button onclick="buyItem('Moldura', 800)" style="background:rgba(255,255,255,0.1); color:#00d2ff; border:1px solid #00d2ff; padding:8px; border-radius:5px; cursor:pointer">🌈 Moldura Brilhante (🪙 800)</button>
-            <button onclick="buyItem('Cor Azul', 300)" style="background:rgba(255,255,255,0.1); color:#3498db; border:1px solid #3498db; padding:8px; border-radius:5px; cursor:pointer">🔵 Nome Azul (🪙 300)</button>
+            <button onclick="buyItem('Cor vermleha', 300)" style="background:rgba(255,255,255,0.1); color:#ff0000; border:1px solid #ff00000; padding:8px; border-radius:5px; cursor:pointer">🔴 Nome Vermelho (🪙 100)</button>
+            <button onclick="buyItem('Cor branco', 300)" style="background:rgba(255,255,255,0.1); color:#ffff; border:1px solid #ffff; padding:8px; border-radius:5px; cursor:pointer">⚪ Nome branco (🪙 100)</button>
         </div>
         <button onclick="toggleShop()" style="margin-top:15px; width:100%; background:var(--accent); border:none; color:white; padding:5px; border-radius:5px; cursor:pointer">Fechar</button>
     `;
