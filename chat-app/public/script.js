@@ -6,6 +6,7 @@ const typingIndicator = document.getElementById('typing-indicator');
 
 let typingTimeout;
 let selectedReply = null;
+let onlineUsers = []; // NOVO: Lista para validar menções reais
 
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
@@ -24,7 +25,7 @@ avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name
 
 socket.emit('join', userData);
 
-// FUNÇÕES DE RESPOSTA
+// RESPOSTA
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
     let replyPreview = document.getElementById('reply-preview');
@@ -38,7 +39,7 @@ function setReply(msgId, userName, text) {
             <small style="color:var(--accent)">Respondendo a <strong>${userName}</strong></small>
             <p style="margin:0; opacity:0.8; font-size:0.8rem">${text}</p>
         </div>
-        <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
     `;
     messageInput.focus();
 }
@@ -49,7 +50,7 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// ENVIO DE MENSAGEM
+// MENSAGENS
 function sendMessage() {
     const text = messageInput.value.trim();
     if (text) {
@@ -70,7 +71,7 @@ socket.on('typing', (data) => {
     typingTimeout = setTimeout(() => { typingIndicator.innerText = ''; }, 2000);
 });
 
-// RECEBER MENSAGENS (COM ADM E MENÇÕES)
+// RECEBER MENSAGENS COM FILTRO DE MENÇÃO REAL
 socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
@@ -84,12 +85,18 @@ socket.on('message', (data) => {
         const isAdm = data.user.toLowerCase().includes('(adm)');
         if (isAdm) div.classList.add('adm-msg');
 
-        // LÓGICA DE MENÇÃO: Transforma @Nome em um span estilizado
+        // LÓGICA DE MENÇÃO APENAS PARA USUÁRIOS REAIS
         let contentWithMentions = data.content;
         if (data.type === 'text') {
-            contentWithMentions = data.content.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+            // Regex que procura por @ seguido de qualquer palavra
+            contentWithMentions = data.content.replace(/@(\S+)/g, (match, username) => {
+                // Verifica se o username (sem o @) está na lista de onlineUsers
+                if (onlineUsers.includes(username)) {
+                    return `<span class="mention">@${username}</span>`;
+                }
+                return match; // Se não for usuário, retorna o texto normal
+            });
             
-            // Verifica se EU fui mencionado
             if (data.content.includes(`@${userData.name}`)) {
                 div.classList.add('mentioned-msg');
             }
@@ -125,7 +132,23 @@ socket.on('message', (data) => {
     typingIndicator.innerText = '';
 });
 
-// (As outras funções de reação, imagem e perfil permanecem iguais)
+// ATUALIZAR LISTA E VALIDAR USUÁRIOS ONLINE
+socket.on('updateUserList', (users) => {
+    // Guarda apenas os nomes para a validação da menção
+    onlineUsers = users.map(u => u.name);
+
+    const list = document.getElementById('user-list');
+    if(list) {
+        list.innerHTML = users.map(u => `
+            <div class="user-item" onclick="document.getElementById('message').value += '@${u.name} '">
+                <img src="${u.photo}" class="user-avatar ${u.name.toLowerCase().includes('(adm)') ? 'adm-avatar' : ''}">
+                <span>${u.name}</span>
+            </div>
+        `).join('');
+    }
+});
+
+// REAÇÕES E IMAGEM
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
@@ -150,17 +173,8 @@ socket.on('reaction', (data) => {
         }
     }
 });
-socket.on('updateUserList', (users) => {
-    const list = document.getElementById('user-list');
-    if(list) {
-        list.innerHTML = users.map(u => `
-            <div class="user-item" onclick="document.getElementById('message').value += '@${u.name} '">
-                <img src="${u.photo}" class="user-avatar ${u.name.toLowerCase().includes('(adm)') ? 'adm-avatar' : ''}">
-                <span>${u.name}</span>
-            </div>
-        `).join('');
-    }
-});
+
+// PERFIL E TEMA
 function updateProfileName() {
     const newName = document.getElementById('edit-username').value.trim();
     if (newName && newName !== userData.name) {
