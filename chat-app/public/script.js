@@ -342,7 +342,7 @@ function updateProfileName() {
     }
 }
 function updateProfilePhoto(input) {
-    const file = input.files[0];
+    const file = input.files[0]; //
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
