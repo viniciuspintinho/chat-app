@@ -16,6 +16,36 @@
         </aside>
 
         <main id="main-content">
+            <div id="settings-panel">
+                <div class="settings-header">
+                    <i class="fa-solid fa-user-gear"></i> Meu Perfil e Tema
+                </div>
+                
+                <div class="settings-body">
+                    <div class="profile-edit-row">
+                        <img id="current-user-avatar" src="" alt="Avatar" class="user-avatar" onclick="document.getElementById('profile-file-input').click()">
+                        <input type="file" id="profile-file-input" style="display:none;" accept="image/*" onchange="updateProfilePhoto(this)">
+                        
+                        <div class="name-edit-group">
+                            <input type="text" id="edit-username" placeholder="Seu nome...">
+                            <button onclick="updateProfileName()" class="btn-icon">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="theme-picker-group">
+                        <label>Cor de Destaque:</label>
+                        <div class="color-options">
+                            <div class="color-dot active" style="background: #ff4bb4;" onclick="changeThemeColor('#ff4bb4', this)"></div>
+                            <div class="color-dot" style="background: #3498db;" onclick="changeThemeColor('#3498db', this)"></div>
+                            <div class="color-dot" style="background: #2ecc71;" onclick="changeThemeColor('#2ecc71', this)"></div>
+                            <div class="color-dot" style="background: #f1c40f;" onclick="changeThemeColor('#f1c40f', this)"></div>
+                            <div class="color-dot" style="background: #e74c3c;" onclick="changeThemeColor('#e74c3c', this)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="chat-container">
                 <div id="chat"></div>
             </div>
