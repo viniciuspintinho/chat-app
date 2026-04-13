@@ -25,7 +25,74 @@ avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name
 
 socket.emit('join', userData);
 
-// SISTEMA DE RESPOSTA
+// IDEIA 2: CRIAR O LETREIRO DE ANÚNCIOS (MARQUEE) AUTOMATICAMENTE
+function updateMarquee(text) {
+    let marquee = document.getElementById('chat-announcement');
+    if (!marquee) {
+        marquee = document.createElement('div');
+        marquee.id = 'chat-announcement';
+        marquee.style = "background:rgba(0,0,0,0.3); color:var(--accent); padding:5px; font-size:0.8rem; border-bottom:1px solid var(--accent); overflow:hidden; white-space:nowrap;";
+        document.getElementById('main-content').prepend(marquee);
+    }
+    marquee.innerHTML = `<marquee scrollamount="5">${text}</marquee>`;
+}
+// Mensagem inicial do letreiro
+updateMarquee(`💕 Bem-vindos ao Chat dos Fofo! Use /casar para encontrar seu par! 💕`);
+
+// ENVIO DE MENSAGEM COM NOVOS COMANDOS
+function sendMessage() {
+    let text = messageInput.value.trim();
+    if (text) {
+        const isAdm = userData.name.toLowerCase().includes('(adm)');
+
+        if (text.startsWith('/love ')) {
+            const target = text.replace('/love ', '').trim();
+            socket.emit('message', { type: 'system', content: `💖 ${userData.name} espalhou amor para ${target}!`, color: '#ff4bb4' });
+        } 
+        // IDEIA 5: COMANDO CASAR
+        else if (text.startsWith('/casar ')) {
+            const target = text.replace('/casar ', '').trim();
+            socket.emit('message', { type: 'system', content: `💍 O AMOR ESTÁ NO AR! ${userData.name} se casou com ${target}! Parabéns ao novo casal! 🎉`, color: '#ff69b4' });
+        }
+        else if (text.startsWith('/bater ')) {
+            const target = text.replace('/bater ', '').trim();
+            socket.emit('message', { type: 'system', content: `👊 ${userData.name} deu um cascudo em ${target}!`, color: '#e74c3c' });
+        }
+        else if (text === '/moeda') {
+            const resultado = Math.random() < 0.5 ? 'CARA' : 'COROA';
+            socket.emit('message', { type: 'system', content: `🪙 ${userData.name} jogou a moeda e deu... ${resultado}!`, color: '#f1c40f' });
+        }
+        else if (text === '/dado') {
+            const valor = Math.floor(Math.random() * 6) + 1;
+            socket.emit('message', { type: 'system', content: `🎲 ${userData.name} girou o dado e tirou... ${valor}!`, color: '#9b59b6' });
+        }
+        else if (text === '/limpar' && isAdm) {
+            chat.innerHTML = '';
+            socket.emit('message', { type: 'system', content: `🧹 O chat foi limpo por ${userData.name}`, color: '#aaa' });
+        }
+        else if (text.startsWith('/enquete ')) {
+            const pergunta = text.replace('/enquete ', '').trim();
+            socket.emit('message', { type: 'system', content: `📊 ENQUETE: ${pergunta}\n(Reaja com ❤️ para SIM ou 😂 para NÃO)`, color: '#00d2ff' });
+        }
+        // EXTRA: ADM pode mudar o letreiro
+        else if (text.startsWith('/letreiro ') && isAdm) {
+            const novoTexto = text.replace('/letreiro ', '').trim();
+            updateMarquee(novoTexto);
+            socket.emit('message', { type: 'system', content: `📢 ${userData.name} atualizou o letreiro do chat!`, color: 'var(--accent)' });
+        }
+        else if (text.startsWith('/aviso ') && isAdm) {
+            const aviso = text.replace('/aviso ', '').trim();
+            socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
+        }
+        else {
+            socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
+        }
+        messageInput.value = '';
+        cancelReply();
+    }
+}
+
+// RESTANTE DO CÓDIGO (REAÇÕES, LISTA DE USUÁRIOS, ETC) MANTIDO IGUAL
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
     let replyPreview = document.getElementById('reply-preview');
@@ -52,50 +119,6 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// ENVIO DE MENSAGEM COM NOVOS COMANDOS (LIMPAR E ENQUETE)
-function sendMessage() {
-    let text = messageInput.value.trim();
-    if (text) {
-        const isAdm = userData.name.toLowerCase().includes('(adm)');
-
-        if (text.startsWith('/love ')) {
-            const target = text.replace('/love ', '').trim();
-            socket.emit('message', { type: 'system', content: `💖 ${userData.name} espalhou amor para ${target}!`, color: '#ff4bb4' });
-        } 
-        else if (text.startsWith('/bater ')) {
-            const target = text.replace('/bater ', '').trim();
-            socket.emit('message', { type: 'system', content: `👊 ${userData.name} deu um cascudo em ${target}!`, color: '#e74c3c' });
-        }
-        else if (text === '/moeda') {
-            const resultado = Math.random() < 0.5 ? 'CARA' : 'COROA';
-            socket.emit('message', { type: 'system', content: `🪙 ${userData.name} jogou a moeda e deu... ${resultado}!`, color: '#f1c40f' });
-        }
-        else if (text === '/dado') {
-            const valor = Math.floor(Math.random() * 6) + 1;
-            socket.emit('message', { type: 'system', content: `🎲 ${userData.name} girou o dado e tirou... ${valor}!`, color: '#9b59b6' });
-        }
-        // COMANDO 2: LIMPAR (ADM)
-        else if (text === '/limpar' && isAdm) {
-            chat.innerHTML = '';
-            socket.emit('message', { type: 'system', content: `🧹 O chat foi limpo por ${userData.name}`, color: '#aaa' });
-        }
-        // COMANDO 7: ENQUETE (ADM OU TODOS)
-        else if (text.startsWith('/enquete ')) {
-            const pergunta = text.replace('/enquete ', '').trim();
-            socket.emit('message', { type: 'system', content: `📊 ENQUETE: ${pergunta}\n(Reaja com ❤️ para SIM ou 😂 para NÃO)`, color: '#00d2ff' });
-        }
-        else if (text.startsWith('/aviso ') && isAdm) {
-            const aviso = text.replace('/aviso ', '').trim();
-            socket.emit('message', { type: 'system', content: `⚠️ AVISO: ${aviso}`, color: 'yellow', isUrgent: true });
-        }
-        else {
-            socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
-        }
-        messageInput.value = '';
-        cancelReply();
-    }
-}
-
 function handleKeyPress(e) {
     if (e.key === 'Enter') sendMessage();
     else socket.emit('typing', { name: userData.name });
@@ -107,7 +130,6 @@ socket.on('typing', (data) => {
     typingTimeout = setTimeout(() => { typingIndicator.innerText = ''; }, 2000);
 });
 
-// RECEBER MENSAGENS
 socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
@@ -120,10 +142,8 @@ socket.on('message', (data) => {
     } else {
         div.classList.add('msg');
         div.id = data.id;
-
         const isAdm = data.user.toLowerCase().includes('(adm)');
         if (isAdm) div.classList.add('adm-msg');
-
         let contentWithMentions = data.content;
         if (data.type === 'text') {
             contentWithMentions = data.content.replace(/@(\S+)/g, (match, username) => {
@@ -132,13 +152,11 @@ socket.on('message', (data) => {
             });
             if (data.content.includes(`@${userData.name}`)) div.classList.add('mentioned-msg');
         }
-
         const replyHTML = data.replyTo ? `
             <div class="msg-reply-info" style="background:rgba(255,255,255,0.05); border-left:3px solid var(--accent); padding:5px; margin-bottom:8px; border-radius:4px; font-size:0.7rem">
                 <strong>${data.replyTo.name}:</strong> ${data.replyTo.text}...
             </div>
         ` : '';
-
         div.innerHTML = `
             ${replyHTML}
             <div class="msg-header" style="color:${data.color}">
@@ -159,12 +177,9 @@ socket.on('message', (data) => {
     }
     chat.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
-    typingIndicator.innerText = '';
 });
 
-// REAÇÕES ACUMULATIVAS
 function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
-
 socket.on('reaction', (data) => {
     const reacDiv = document.getElementById(`reac-${data.msgId}`);
     if (reacDiv) {
@@ -188,22 +203,16 @@ socket.on('reaction', (data) => {
     }
 });
 
-// LISTA DE USUÁRIOS (COM CARGO POR COR E CONTADOR)
 socket.on('updateUserList', (users) => {
     onlineUsers = users.map(u => u.name);
-    
-    // COMANDO 6: CONTADOR DE ONLINE
     const counter = document.getElementById('online-counter');
     if(counter) counter.innerText = `Online: ${users.length}`;
-
     const list = document.getElementById('user-list');
     if(list) {
         list.innerHTML = users.map(u => {
             const isAdm = u.name.toLowerCase().includes('(adm)');
-            // COMANDO 1: STATUS ESPECIAL ADM
             const statusColor = isAdm ? 'gold' : '#2ecc71';
             const statusClass = isAdm ? 'status-adm-glow' : '';
-            
             return `
                 <div class="user-item" onclick="document.getElementById('message').value += '@${u.name} '">
                     <div class="avatar-container">
@@ -217,7 +226,7 @@ socket.on('updateUserList', (users) => {
     }
 });
 
-// FUNÇÕES DE PERFIL E IMAGEM
+// FUNÇÕES DE PERFIL E TEMA (MANTIDAS)
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
