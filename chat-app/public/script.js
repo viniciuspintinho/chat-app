@@ -6,7 +6,6 @@ const typingIndicator = document.getElementById('typing-indicator');
 
 let typingTimeout;
 
-// Carregar dados iniciais e aplicar tema salvo
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
 
@@ -18,37 +17,36 @@ const userData = {
 
 if (!userData.name) window.location.href = 'index.html';
 
-// Preencher painel de configurações
 document.getElementById('edit-username').value = userData.name;
 const avatar = document.getElementById('current-user-avatar');
 avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name}&background=ff4bb4&color=fff`;
 
-// Marcar a bolinha de cor correta no painel
-const colorDots = document.querySelectorAll('.color-dot');
-colorDots.forEach(dot => {
-    if (dot.style.backgroundColor === rgbToHex(savedThemeColor)) {
-        dot.classList.add('active');
-    } else {
-        dot.classList.remove('active');
-    }
-});
-
 socket.emit('join', userData);
 
-// --- FUNÇÕES DO PAINEL DE CONFIGURAÇÕES (NOVAS) ---
+// LOGICA DE DIGITANDO
+function handleKeyPress(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    } else {
+        socket.emit('typing', { name: userData.name });
+    }
+}
+
+socket.on('typing', (data) => {
+    typingIndicator.innerText = `${data.name} está digitando...`;
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        typingIndicator.innerText = '';
+    }, 2000);
+});
+
+// FUNÇÕES DE PERFIL
 function updateProfileName() {
     const newName = document.getElementById('edit-username').value.trim();
     if (newName && newName !== userData.name) {
         userData.name = newName;
         localStorage.setItem('username', newName);
         socket.emit('updateProfile', { name: newName });
-        
-        // Atualiza a foto automática se não houver foto enviada
-        if (!userData.photo) {
-            const newAutoPhoto = `https://ui-avatars.com/api/?name=${newName}&background=${userData.color.replace('#','')}&color=fff`;
-            avatar.src = newAutoPhoto;
-            socket.emit('updateProfile', { photo: newAutoPhoto });
-        }
     }
 }
 
@@ -58,7 +56,7 @@ function updateProfilePhoto(input) {
         const reader = new FileReader();
         reader.onload = (e) => {
             userData.photo = e.target.result;
-            avatar.src = e.target.result; // Atualiza no painel
+            avatar.src = e.target.result;
             localStorage.setItem('userphoto', e.target.result);
             socket.emit('updateProfile', { photo: e.target.result });
         };
@@ -69,41 +67,19 @@ function updateProfilePhoto(input) {
 function changeThemeColor(color, dotElement) {
     userData.color = color;
     localStorage.setItem('themeAccent', color);
-    
-    // Aplica o tema na variável CSS `--accent` instantaneamente
     document.documentElement.style.setProperty('--accent', color);
     socket.emit('updateProfile', { color: color });
-
-    // Atualiza o painel visual (bolinhas)
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
     dotElement.classList.add('active');
 }
 
-// Auxiliar para comparar cores hex com cores rgb retornadas pelo DOM
-function rgbToHex(rgb) {
-    if (!rgb || rgb.startsWith('#')) return rgb;
-    const parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-    delete(parts[0]);
-    for (let i = 1; i <= 3; ++i) {
-        parts[i] = parseInt(parts[i]).toString(16);
-        if (parts[i].length == 1) parts[i] = '0' + parts[part[i]];
-    }
-    return '#' + parts.join('');
-}
-// --- FIM FUNÇÕES CONFIGURAÇÕES ---
-
-// --- FUNÇÕES DO CHAT (MANTIDAS) ---
+// MENSAGENS E REAÇÕES
 function sendMessage() {
     const text = messageInput.value.trim();
     if (text) {
         socket.emit('message', { type: 'text', content: text });
         messageInput.value = '';
     }
-}
-
-function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
-    socket.emit('typing', { name: userData.name });
 }
 
 function sendImage(input) {
@@ -165,14 +141,6 @@ socket.on('reaction', (data) => {
             setTimeout(() => existing.style.transform = "scale(1)", 200);
         }
     }
-});
-
-socket.on('typing', (data) => {
-    typingIndicator.innerText = `${data.name} está digitando...`;
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-        typingIndicator.innerText = '';
-    }, 2000);
 });
 
 socket.on('updateUserList', (users) => {
