@@ -286,6 +286,37 @@ header span {
 .reaction-bar button:hover i {
     transform: scale(1.2);
 }
+/* Estilo da mensagem do ADM */
+.adm-msg {
+    border: 1px solid var(--accent) !important;
+    box-shadow: 0 0 15px rgba(255, 75, 180, 0.2); /* Brilho sutil da cor do tema */
+    background: linear-gradient(45deg, rgba(20, 20, 20, 1), rgba(40, 40, 40, 1)) !important;
+}
+
+/* Badge (Etiqueta) de ADM */
+.adm-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    font-weight: bold;
+    box-shadow: 0 0 8px var(--accent);
+}
+
+/* Borda brilhante no avatar do ADM */
+.adm-avatar {
+    border: 2px solid var(--accent) !important;
+    filter: drop-shadow(0 0 5px var(--accent));
+}
+
+/* Destaque no nome do ADM */
+.adm-msg strong {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
 
 .chat-img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
 

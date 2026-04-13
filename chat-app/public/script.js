@@ -5,7 +5,7 @@ const messageInput = document.getElementById('message');
 const typingIndicator = document.getElementById('typing-indicator');
 
 let typingTimeout;
-let selectedReply = null; // NOVO: Armazena a mensagem que será respondida
+let selectedReply = null;
 
 const savedThemeColor = localStorage.getItem('themeAccent') || '#ff4bb4';
 document.documentElement.style.setProperty('--accent', savedThemeColor);
@@ -24,7 +24,7 @@ avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name
 
 socket.emit('join', userData);
 
-// NOVO: FUNÇÕES DE RESPOSTA
+// SISTEMA DE RESPOSTA
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
     
@@ -53,14 +53,14 @@ function cancelReply() {
     if (preview) preview.remove();
 }
 
-// ENVIO DE MENSAGEM (ATUALIZADO)
+// ENVIO DE MENSAGEM
 function sendMessage() {
     const text = messageInput.value.trim();
     if (text) {
         socket.emit('message', { 
             type: 'text', 
             content: text,
-            replyTo: selectedReply // Envia a resposta junto
+            replyTo: selectedReply 
         });
         messageInput.value = '';
         cancelReply();
@@ -78,7 +78,7 @@ socket.on('typing', (data) => {
     typingTimeout = setTimeout(() => { typingIndicator.innerText = ''; }, 2000);
 });
 
-// RECEBER MENSAGENS (ATUALIZADO COM LAYOUT DE RESPOSTA)
+// RECEBER MENSAGENS COM PODERES DE ADM
 socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
@@ -88,8 +88,13 @@ socket.on('message', (data) => {
     } else {
         div.classList.add('msg');
         div.id = data.id;
+
+        // VERIFICAÇÃO DE ADM (Poderes visuais)
+        const isAdm = data.user.toLowerCase().includes('(adm)');
+        if (isAdm) {
+            div.classList.add('adm-msg');
+        }
         
-        // NOVO: HTML da resposta no topo da mensagem
         const replyHTML = data.replyTo ? `
             <div class="msg-reply-info" style="background:rgba(255,255,255,0.05); border-left:3px solid var(--accent); padding:5px 10px; margin-bottom:8px; border-radius:5px; font-size:0.75rem">
                 <small>Repondendo a <strong>${data.replyTo.name}</strong></small>
@@ -100,15 +105,15 @@ socket.on('message', (data) => {
         div.innerHTML = `
             ${replyHTML}
             <div class="msg-header" style="color:${data.color}">
-                <img src="${data.photo}" class="user-avatar-mini">
-                <strong>${data.user}</strong>
+                <img src="${data.photo}" class="user-avatar-mini ${isAdm ? 'adm-avatar' : ''}">
+                <strong>${data.user} ${isAdm ? '<span class="adm-badge">★ ADM</span>' : ''}</strong>
             </div>
             <div class="msg-content">
                 ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${data.content}</span>`}
             </div>
             <div id="reac-${data.id}" class="reaction-container"></div>
             <div class="reaction-bar">
-                <button onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')">
+                <button title="Responder" onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')">
                     <i class="fa-solid fa-reply" style="color:var(--accent)"></i>
                 </button>
                 <button onclick="react('${data.id}', '❤️')">❤️</button>
@@ -122,7 +127,7 @@ socket.on('message', (data) => {
     typingIndicator.innerText = '';
 });
 
-// FUNÇÕES DE PERFIL E REAÇÕES (MANTIDAS)
+// FUNÇÕES DE IMAGEM E REAÇÃO
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
@@ -156,10 +161,16 @@ socket.on('reaction', (data) => {
 socket.on('updateUserList', (users) => {
     const list = document.getElementById('user-list');
     if(list) {
-        list.innerHTML = users.map(u => `<div class="user-item"><img src="${u.photo}" class="user-avatar"><span>${u.name}</span></div>`).join('');
+        list.innerHTML = users.map(u => `
+            <div class="user-item">
+                <img src="${u.photo}" class="user-avatar ${u.name.toLowerCase().includes('(adm)') ? 'adm-avatar' : ''}">
+                <span>${u.name}</span>
+            </div>
+        `).join('');
     }
 });
 
+// FUNÇÕES DE PERFIL
 function updateProfileName() {
     const newName = document.getElementById('edit-username').value.trim();
     if (newName && newName !== userData.name) {
