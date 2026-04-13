@@ -4,33 +4,14 @@ const chat = document.getElementById('chat');
 const messageInput = document.getElementById('message');
 const typingIndicator = document.getElementById('typing-indicator');
 
-// --- CORREÇÃO DE LAYOUT DEFINITIVA (CSS INJETADO) ---
+// --- 1. CORREÇÃO DE LAYOUT (CSS INJETADO) ---
 const styleFix = document.createElement('style');
 styleFix.innerHTML = `
-    /* Garante que o corpo da página não role, apenas o chat */
-    body, html { height: 100%; margin: 0; overflow: hidden; }
-    
-    /* O container principal deve ocupar a tela toda e ser um flexbox */
-    #main-content { 
-        display: flex; 
-        flex-direction: column; 
-        height: 100vh; 
-        width: 100%;
-    }
-
-    /* O chat-container ocupa o espaço que sobrar e cria o scroll */
-    #chat-container { 
-        flex: 1; 
-        overflow-y: auto; 
-        overflow-x: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* A barra de input fica presa embaixo e nunca diminui */
-    .chat-input-area, .input-area, #message-form { 
-        flex-shrink: 0; 
-    }
+    body, html { height: 100%; margin: 0; overflow: hidden; background: #0b0b0b; }
+    #main-content { display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; }
+    #chat-container { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; padding-bottom: 20px; }
+    .input-area, #message-form, .chat-input-area { flex-shrink: 0; position: relative; z-index: 10; }
+    .msg { word-wrap: break-word; max-width: 100%; }
 `;
 document.head.appendChild(styleFix);
 
@@ -38,7 +19,7 @@ let typingTimeout;
 let selectedReply = null;
 let onlineUsers = [];
 
-// --- SISTEMA DE MOEDAS E LOJA ---
+// --- 2. SISTEMA DE MOEDAS E LOJA ---
 let fofoCoins = parseInt(localStorage.getItem('fofoCoins')) || 0;
 let userTags = JSON.parse(localStorage.getItem('userTags')) || [];
 let hasGlow = localStorage.getItem('hasGlow') === 'true';
@@ -60,14 +41,14 @@ document.getElementById('edit-username').value = userData.name;
 const avatar = document.getElementById('current-user-avatar');
 avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name}&background=ff4bb4&color=fff`;
 
-// --- CORREÇÃO DE LAYOUT (IMPEDE SUMIR BARRA) ---
+// --- 3. CORREÇÃO DE LAYOUT ---
 function fixLayout() {
     if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 }
 
-// --- INTERFACE DA LOJA ---
+// --- 4. INTERFACE DA LOJA ---
 function setupShopUI() {
     const profileArea = document.querySelector('.user-profile-info') || avatar.parentElement;
     if (profileArea && !document.getElementById('shop-btn')) {
@@ -128,6 +109,7 @@ function buyItem(item, price) {
     }
 }
 
+// --- 5. COMANDOS E MENSAGENS ---
 socket.emit('join', userData);
 
 function updateMarquee(text) {
@@ -214,10 +196,10 @@ function setReply(msgId, userName, text) {
         document.getElementById('main-content').insertBefore(replyPreview, typingIndicator);
     }
     replyPreview.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; background:rgba(0,0,0,0.5); padding:10px; border-left:4px solid var(--accent)">
             <div>
                 <small style="color:var(--accent)">Respondendo a <strong>${userName}</strong></small>
-                <p style="margin:0; opacity:0.8; font-size:0.8rem">${text}</p>
+                <p style="margin:0; opacity:0.8; font-size:0.8rem; color:white">${text}</p>
             </div>
             <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -337,6 +319,7 @@ socket.on('updateUserList', (users) => {
     }
 });
 
+// --- 6. FUNÇÕES DE PERFIL ---
 setupShopUI();
 
 function sendImage(input) {
