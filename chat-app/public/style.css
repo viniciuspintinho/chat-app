@@ -317,6 +317,28 @@ header span {
 .adm-msg strong {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
+/* Estilo do texto marcado */
+.mention {
+    background: var(--accent);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Quando VOCÊ é mencionado, a mensagem brilha */
+.mentioned-msg {
+    background: rgba(255, 255, 0, 0.1) !important; /* Um leve dourado no fundo */
+    border-left: 5px solid #f1c40f !important;
+    animation: pulseMention 2s infinite;
+}
+
+@keyframes pulseMention {
+    0% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.2); }
+    50% { box-shadow: 0 0 15px rgba(241, 196, 15, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(241, 196, 15, 0.2); }
+}
 
 .chat-img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
 

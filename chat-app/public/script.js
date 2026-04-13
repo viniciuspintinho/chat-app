@@ -24,25 +24,21 @@ avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name
 
 socket.emit('join', userData);
 
-// SISTEMA DE RESPOSTA
+// FUNÇÕES DE RESPOSTA
 function setReply(msgId, userName, text) {
     selectedReply = { id: msgId, name: userName, text: text.substring(0, 50) };
-    
     let replyPreview = document.getElementById('reply-preview');
     if (!replyPreview) {
         replyPreview = document.createElement('div');
         replyPreview.id = 'reply-preview';
         document.getElementById('main-content').insertBefore(replyPreview, typingIndicator);
     }
-    
     replyPreview.innerHTML = `
         <div class="reply-content">
             <small style="color:var(--accent)">Respondendo a <strong>${userName}</strong></small>
             <p style="margin:0; opacity:0.8; font-size:0.8rem">${text}</p>
         </div>
-        <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button onclick="cancelReply()" style="background:none; border:none; color:white; cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
     `;
     messageInput.focus();
 }
@@ -57,11 +53,7 @@ function cancelReply() {
 function sendMessage() {
     const text = messageInput.value.trim();
     if (text) {
-        socket.emit('message', { 
-            type: 'text', 
-            content: text,
-            replyTo: selectedReply 
-        });
+        socket.emit('message', { type: 'text', content: text, replyTo: selectedReply });
         messageInput.value = '';
         cancelReply();
     }
@@ -78,7 +70,7 @@ socket.on('typing', (data) => {
     typingTimeout = setTimeout(() => { typingIndicator.innerText = ''; }, 2000);
 });
 
-// RECEBER MENSAGENS COM PODERES DE ADM
+// RECEBER MENSAGENS (COM ADM E MENÇÕES)
 socket.on('message', (data) => {
     const div = document.createElement('div');
     if (data.type === 'system') {
@@ -89,12 +81,20 @@ socket.on('message', (data) => {
         div.classList.add('msg');
         div.id = data.id;
 
-        // VERIFICAÇÃO DE ADM (Poderes visuais)
         const isAdm = data.user.toLowerCase().includes('(adm)');
-        if (isAdm) {
-            div.classList.add('adm-msg');
+        if (isAdm) div.classList.add('adm-msg');
+
+        // LÓGICA DE MENÇÃO: Transforma @Nome em um span estilizado
+        let contentWithMentions = data.content;
+        if (data.type === 'text') {
+            contentWithMentions = data.content.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+            
+            // Verifica se EU fui mencionado
+            if (data.content.includes(`@${userData.name}`)) {
+                div.classList.add('mentioned-msg');
+            }
         }
-        
+
         const replyHTML = data.replyTo ? `
             <div class="msg-reply-info" style="background:rgba(255,255,255,0.05); border-left:3px solid var(--accent); padding:5px 10px; margin-bottom:8px; border-radius:5px; font-size:0.75rem">
                 <small>Repondendo a <strong>${data.replyTo.name}</strong></small>
@@ -109,13 +109,11 @@ socket.on('message', (data) => {
                 <strong>${data.user} ${isAdm ? '<span class="adm-badge">★ ADM</span>' : ''}</strong>
             </div>
             <div class="msg-content">
-                ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${data.content}</span>`}
+                ${data.type === 'image' ? `<img src="${data.content}" class="chat-img">` : `<span>${contentWithMentions}</span>`}
             </div>
             <div id="reac-${data.id}" class="reaction-container"></div>
             <div class="reaction-bar">
-                <button title="Responder" onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')">
-                    <i class="fa-solid fa-reply" style="color:var(--accent)"></i>
-                </button>
+                <button onclick="setReply('${data.id}', '${data.user}', '${data.type === 'image' ? 'Imagem' : data.content}')"><i class="fa-solid fa-reply" style="color:var(--accent)"></i></button>
                 <button onclick="react('${data.id}', '❤️')">❤️</button>
                 <button onclick="react('${data.id}', '🔥')">🔥</button>
                 <button onclick="react('${data.id}', '😂')">😂</button>
@@ -127,7 +125,7 @@ socket.on('message', (data) => {
     typingIndicator.innerText = '';
 });
 
-// FUNÇÕES DE IMAGEM E REAÇÃO
+// (As outras funções de reação, imagem e perfil permanecem iguais)
 function sendImage(input) {
     const file = input.files[0];
     if (file) {
@@ -139,9 +137,7 @@ function sendImage(input) {
         reader.readAsDataURL(file);
     }
 }
-
 function react(msgId, emoji) { socket.emit('reaction', { msgId, emoji }); }
-
 socket.on('reaction', (data) => {
     const reacDiv = document.getElementById(`reac-${data.msgId}`);
     if (reacDiv) {
@@ -151,26 +147,20 @@ socket.on('reaction', (data) => {
             span.className = 'emoji-badge';
             span.innerText = data.emoji;
             reacDiv.appendChild(span);
-        } else {
-            existing.style.transform = "scale(1.3)";
-            setTimeout(() => existing.style.transform = "scale(1)", 200);
         }
     }
 });
-
 socket.on('updateUserList', (users) => {
     const list = document.getElementById('user-list');
     if(list) {
         list.innerHTML = users.map(u => `
-            <div class="user-item">
+            <div class="user-item" onclick="document.getElementById('message').value += '@${u.name} '">
                 <img src="${u.photo}" class="user-avatar ${u.name.toLowerCase().includes('(adm)') ? 'adm-avatar' : ''}">
                 <span>${u.name}</span>
             </div>
         `).join('');
     }
 });
-
-// FUNÇÕES DE PERFIL
 function updateProfileName() {
     const newName = document.getElementById('edit-username').value.trim();
     if (newName && newName !== userData.name) {
@@ -179,7 +169,6 @@ function updateProfileName() {
         socket.emit('updateProfile', { name: newName });
     }
 }
-
 function updateProfilePhoto(input) {
     const file = input.files[0];
     if (file) {
@@ -193,7 +182,6 @@ function updateProfilePhoto(input) {
         reader.readAsDataURL(file);
     }
 }
-
 function changeThemeColor(color, dotElement) {
     userData.color = color;
     localStorage.setItem('themeAccent', color);
