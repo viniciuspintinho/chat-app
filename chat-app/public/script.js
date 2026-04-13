@@ -4,7 +4,7 @@ const chat = document.getElementById('chat');
 const messageInput = document.getElementById('message');
 const typingIndicator = document.getElementById('typing-indicator');
 
-// --- CORREÇÃO DE LAYOUT DEFINITIVA (ADICIONE ESTE BLOCO AQUI) ---
+// --- CORREÇÃO DE LAYOUT DEFINITIVA (CSS INJETADO) ---
 const styleFix = document.createElement('style');
 styleFix.innerHTML = `
     /* Garante que o corpo da página não role, apenas o chat */
@@ -33,7 +33,6 @@ styleFix.innerHTML = `
     }
 `;
 document.head.appendChild(styleFix);
-// -------------------------------------------------------------
 
 let typingTimeout;
 let selectedReply = null;
@@ -63,7 +62,9 @@ avatar.src = userData.photo || `https://ui-avatars.com/api/?name=${userData.name
 
 // --- CORREÇÃO DE LAYOUT (IMPEDE SUMIR BARRA) ---
 function fixLayout() {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 }
 
 // --- INTERFACE DA LOJA ---
@@ -135,7 +136,8 @@ function updateMarquee(text) {
         marquee = document.createElement('div');
         marquee.id = 'chat-announcement';
         marquee.style = "background:rgba(0,0,0,0.3); color:var(--accent); padding:5px; font-size:0.8rem; border-bottom:1px solid var(--accent); overflow:hidden; white-space:nowrap;";
-        document.getElementById('main-content').prepend(marquee);
+        const main = document.getElementById('main-content');
+        if (main) main.prepend(marquee);
     }
     marquee.innerHTML = `<marquee scrollamount="5">${text}</marquee>`;
 }
@@ -370,13 +372,10 @@ function updateProfilePhoto(input) {
     }
 }
 function changeThemeColor(color, dotElement) {
-
     userData.color = color;
     localStorage.setItem('themeAccent', color);
-    
     document.documentElement.style.setProperty('--accent', color);
     socket.emit('updateProfile', { color: color });
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
     if(dotElement) dotElement.classList.add('active');
-
 }
